@@ -37,6 +37,7 @@ public class IngredientDAO implements I_IngredientDAO {
                 ingredient.setActive(result.getBoolean("active"));
                 ingredient.setReOrder(result.getBoolean("reOrder"));
             }
+            return ingredient;
         } catch (SQLException e) {
             throw new DALException(e.getMessage());
         }
@@ -156,13 +157,22 @@ public class IngredientDAO implements I_IngredientDAO {
     }
 
     @Override
-    public void UpdateIngredient(IngredientDTO ingredient) {
+    public void UpdateIngredient(IngredientDTO ingredient) throws DALException{
+        try (Connection connection = createConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    "update Ingredient set name = ?, active = ?, reOrder =? where ingredientId = ?");
+            statement.setString(2, ingredient.getName());
+            statement.setBoolean(3, ingredient.isActive());
+            statement.setBoolean(4, ingredient.isReOrder());
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            throw new DALException(ex.getMessage());
+        }
 
     }
 
     @Override
     public void DeleteIngredient(IngredientDTO ingredient) {
-
     }
 
     @Override

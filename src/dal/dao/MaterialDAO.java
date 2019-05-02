@@ -48,6 +48,7 @@ public class MaterialDAO implements IMaterialDAO{
                     material.setSupplier(result.getString("supplier"));
                     material.setIngredientId(result.getInt("ingredientId"));
                     material.setQuantity(result.getInt("quantity"));
+                    material.setExpired(result.getBoolean("expired"));
                 }
                 return material;
             } catch (SQLException e) {
@@ -84,9 +85,10 @@ public class MaterialDAO implements IMaterialDAO{
         public void updateMaterial(MaterialDTO material) throws DALException {
             try (Connection connection = createConnection()) {
                 PreparedStatement statement = connection.prepareStatement(
-                        "update Materials set name = ?, supplier = ? where userId = ?");
+                        "update Materials set name = ?, supplier = ?, expired = ? where userId = ?");
                 statement.setString(1, material.getName());
                 statement.setString(2, material.getSupplier());
+                statement.setBoolean(3,material.isExpired());
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 throw new DALException(ex.getMessage());
