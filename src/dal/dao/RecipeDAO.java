@@ -3,6 +3,7 @@ package dal.dao;
 import dal.dto.RecipeDTO;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,11 +16,13 @@ public class RecipeDAO implements IRecipeDAO {
     @Override
     public void createRecipe(RecipeDTO recipe) throws DALException {
         try (Connection connection = createConnection()) {
-            PreparedStatement statement = connection.prepareStatement("insert into Recipe values (?, ?, ?, ?)");
+            PreparedStatement statement = connection.prepareStatement("insert into Recipe values (?, ?, ?, ?, ?, ?)");
             statement.setInt(1, recipe.getRecipeId());
-            statement.setString(2, recipe.getRecipeName());
-            statement.setInt(3, recipe.getAuthorId());
-            statement.setInt(4, recipe.getQuantity());
+            statement.setDate(2,recipe.getEndDate());
+            statement.setString(3, recipe.getName());
+            statement.setInt(4, recipe.getAuthorId());
+            statement.setString(5,recipe.getDescription());
+            statement.setInt(6, recipe.getQuantity());
             statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -39,8 +42,10 @@ public class RecipeDAO implements IRecipeDAO {
 
             if (result.next()) {
                 recipe.setRecipeId(result.getInt("recipeId"));
-                recipe.setRecipeName(result.getString("recipeName"));
+                recipe.setEndDate(result.getDate("endDate"));
+                recipe.setName(result.getString("name"));
                 recipe.setAuthorId(result.getInt("authorId"));
+                recipe.setDescription(result.getNString("description"));
                 recipe.setQuantity(result.getInt("quantity"));
             }
             return recipe;
@@ -55,13 +60,16 @@ public class RecipeDAO implements IRecipeDAO {
             List<RecipeDTO> recipeList = new ArrayList<>();
 
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select * from Recipe");
+            ResultSet resultSet = statement.executeQuery("select * from Recipe where endDate > ?");
+            Date today = new Date(System.currentTimeMillis());
 
             while (resultSet.next()) {
                 RecipeDTO recipe = new RecipeDTO();
                 recipe.setRecipeId(resultSet.getInt("recipeId"));
-                recipe.setRecipeName(resultSet.getString("recipeName"));
+                recipe.setEndDate(resultSet.getDate("endDate"));
+                recipe.setName(resultSet.getString("name"));
                 recipe.setAuthorId(resultSet.getInt("authorId"));
+                recipe.setDescription(resultSet.getNString("description"));
                 recipe.setQuantity(resultSet.getInt("quantity"));
 
                 recipeList.add(recipe);
@@ -77,10 +85,12 @@ public class RecipeDAO implements IRecipeDAO {
     public void updateRecipe(RecipeDTO recipe) throws DALException {
         try (Connection connection = createConnection()) {
             PreparedStatement statement = connection.prepareStatement(
-                    "update Recipe set recipeName = ?, authorId = ?, quantity = ? where userId = ?");
-            statement.setString(1, recipe.getRecipeName());
-            statement.setInt(2, recipe.getAuthorId());
-            statement.setInt(3, recipe.getQuantity());
+                    "update Recipe set endDate =?, name = ?, authorId = ?, description =? quantity = ? where userId = ?");
+            statement.setDate(2,recipe.getEndDate());
+            statement.setString(3, recipe.getName());
+            statement.setInt(4, recipe.getAuthorId());
+            statement.setString(5, recipe.getDescription());
+            statement.setInt(6, recipe.getQuantity());
             statement.executeUpdate();
         } catch (SQLException ex) {
             throw new DALException(ex.getMessage());

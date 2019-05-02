@@ -1,11 +1,12 @@
 package dal.dto;
 
+import java.sql.Date;
 import java.time.LocalTime;
 
 public class RecipeDTO {
 
     private int recipeId;
-    private LocalTime endDate;
+    private Date endDate;
     private String name;
     private int authorId;
     private String description;
@@ -17,6 +18,7 @@ public class RecipeDTO {
         this.authorId = authorId;
         this.quantity = quantity;
     }
+    public RecipeDTO(){}
 
     public int getRecipeId() {
         return recipeId;
@@ -25,10 +27,10 @@ public class RecipeDTO {
         this.recipeId = recipeId;
     }
 
-    public LocalTime getEndDate() {
+    public Date getEndDate() {
         return endDate;
     }
-    public void setEndDate(LocalTime endDate) {
+    public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
 
