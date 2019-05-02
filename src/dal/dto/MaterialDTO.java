@@ -2,18 +2,25 @@ package dal.dto;
 
 public class MaterialDTO {
 
-    private int materialBatchId;
+    private int batchId;
     private String name;
     private int ingredientId;
-    private String quantity;
+    private int quantity;
     private String supplier;
     private boolean expired;
 
-    public int getMaterialBatchId() {
-        return materialBatchId;
+    public int getBatchId() {
+        return batchId;
     }
-    public void setMaterialBatchId(int materialBatchId) {
-        this.materialBatchId = materialBatchId;
+    public void setBatchId(int batchId) {
+        this.batchId = batchId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
     public String getName() {
@@ -28,13 +35,6 @@ public class MaterialDTO {
     }
     public void setIngredientId(int ingredientId) {
         this.ingredientId = ingredientId;
-    }
-
-    public String getQuantity() {
-        return quantity;
-    }
-    public void setQuantity(String quantity) {
-        this.quantity = quantity;
     }
 
     public String getSupplier() {
@@ -53,6 +53,6 @@ public class MaterialDTO {
 
     @Override
     public String toString() {
-        return "MaterialDTO [materialId= " + materialBatchId + ", materialName= " + name + ", supplierName= " + supplier + "]";
+        return "MaterialDTO [materialId= " + batchId + ", materialName= " + name + ", supplierName= " + supplier + "]";
     }
 }
