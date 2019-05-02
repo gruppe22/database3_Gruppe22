@@ -13,6 +13,4 @@ public interface IUserController {
     void start() throws IUserDAO.DALException, IOException;
     void showMenu() throws IUserDAO.DALException, IOException;
     void showSubMenu(int userChoice) throws IUserDAO.DALException, IOException;
-
-    //Todo: methods for program flow here..
 }

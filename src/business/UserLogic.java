@@ -109,7 +109,4 @@ public class UserLogic implements IUserLogic {
         return userDto.getUserId();
     }
 
-    /*public void saveData(String fileName) throws IOException {
-        userDao.saveData(fileName);
-    }*/
 }
