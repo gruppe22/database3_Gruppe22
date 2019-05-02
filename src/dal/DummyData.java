@@ -1,6 +1,6 @@
 package dal;
 
-import dal.dto.BatchDTO;
+import dal.dto.ProductionDTO;
 import dal.dto.MaterialDTO;
 import dal.dto.UserDTO;
 
@@ -11,7 +11,7 @@ import java.util.List;
 public class DummyData {
     private List<User> users = new ArrayList<>();
     private List<MaterialDTO> materials = new ArrayList<>();
-    private List<BatchDTO> batches = new ArrayList<>();
+    private List<ProductionDTO> batches = new ArrayList<>();
 
 
     public DummyData() throws IOException, ClassNotFoundException {
@@ -39,7 +39,7 @@ public class DummyData {
         return users.get(id);
     }
 
-    public void createBatch(BatchDTO batch) {
+    public void createBatch(ProductionDTO batch) {
         batches.add(batch);
     }
     public void createUser(UserDTO user){
@@ -84,7 +84,7 @@ public class DummyData {
     public void readFromDisk(String fileName) throws IOException, ClassNotFoundException {
         ObjectInputStream in = new ObjectInputStream(new FileInputStream(fileName));
         this.users = (List<User>)in.readObject();
-        this.batches = (List<BatchDTO>)in.readObject();
+        this.batches = (List<ProductionDTO>)in.readObject();
         this.materials = (List<MaterialDTO>)in.readObject();
     }
 }

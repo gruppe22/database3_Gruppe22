@@ -9,9 +9,7 @@ public interface IRecipeDAO {
     List<RecipeDTO> getRecipeList() throws IRecipeDAO.DALException;
 
     void createRecipe(RecipeDTO recipe) throws IRecipeDAO.DALException;
-
     void updateRecipe(RecipeDTO recipe) throws IRecipeDAO.DALException;
-
     void deleteRecipe(RecipeDTO recipe) throws IRecipeDAO.DALException;
     void deleteRecipe(int recipeId) throws IRecipeDAO.DALException;
 

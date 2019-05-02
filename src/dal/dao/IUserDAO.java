@@ -6,8 +6,6 @@ import java.util.List;
 
 public interface IUserDAO {
 
-    static final long serialVersionUID = 7355418246336739229L;
-
     class DALException extends Exception {
         public DALException(String msg, Throwable e) {
             super(msg,e);

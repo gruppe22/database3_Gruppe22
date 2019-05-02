@@ -1,33 +1,67 @@
 package dal.dto;
 
+import java.time.LocalTime;
+
 public class RecipeDTO {
 
     private int recipeId;
-    private String recipeName;
+    private LocalTime endDate;
+    private String name;
     private int authorId;
+    private String description;
     private int quantity;
 
-    public RecipeDTO (int recipeId, String recipeName, int authorId, int quantity) {
+    public RecipeDTO (int recipeId, String name, int authorId, int quantity) {
         this.recipeId = recipeId;
-        this.recipeName = recipeName;
+        this.name = name;
         this.authorId = authorId;
         this.quantity = quantity;
     }
 
-    public RecipeDTO(){}
+    public int getRecipeId() {
+        return recipeId;
+    }
+    public void setRecipeId(int recipeId) {
+        this.recipeId = recipeId;
+    }
 
-    public int getRecipeId(){return recipeId;}
-    public String getRecipeName(){return recipeName;}
-    public int getAuthorId() {return authorId;}
-    public int getQuantity(){return quantity;}
+    public LocalTime getEndDate() {
+        return endDate;
+    }
+    public void setEndDate(LocalTime endDate) {
+        this.endDate = endDate;
+    }
 
-    public void setRecipeId(int recipeId) {this.recipeId = recipeId;}
-    public void setRecipeName(String recipeName) {this.recipeName = recipeName;}
-    public void setAuthorId(int authorId) {this.authorId = authorId;}
-    public void setQuantity(int quantity){this.quantity = quantity;}
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAuthorId() {
+        return authorId;
+    }
+    public void setAuthorId(int authorId) {
+        this.authorId = authorId;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 
     @Override
     public String toString() {
-        return "RecipeDTO [recipeId= " + recipeId + ", recipeName= " + recipeName + ", authorID= " + authorId + ", quantity= " + quantity + "]";
+        return "RecipeDTO [recipeId= " + recipeId + ", recipeName= " + name + ", authorID= " + authorId + ", quantity= " + quantity + "]";
     }
 }
