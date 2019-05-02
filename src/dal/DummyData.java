@@ -27,8 +27,8 @@ public class DummyData {
 
             // Materials
             MaterialDTO material = new MaterialDTO();
-            material.setMaterialId(1234);
-            material.setMaterialName("Salt");
+            material.setBatchId(1234);
+            material.setName("Salt");
             materials.add(material);
         }
         else {
@@ -66,7 +66,7 @@ public class DummyData {
 
     public MaterialDTO getMaterial(int id) {
         for (MaterialDTO m : materials) {
-            if (m.getMaterialId() == id)
+            if (m.getBatchId() == id)
                 return m;
         }
         return null;
