@@ -8,6 +8,7 @@ import java.util.List;
 import java.io.IOException;
 
 public class MaterialDAO implements IMaterialDAO{
+
         private Connection createConnection() throws SQLException {
             return  DriverManager.getConnection("jdbc:mysql://ec2-52-30-211-3.eu-west-1.compute.amazonaws.com/s185015"
                     + "?user=s185015&password=629FTiYG3DNSPQV3r4YIU");
@@ -16,6 +17,7 @@ public class MaterialDAO implements IMaterialDAO{
         @Override
         public void createMaterial(MaterialDTO material) throws DALException {
             try (Connection connection = createConnection()) {
+
                 PreparedStatement statement = connection.prepareStatement("insert into Materials values (?, ?, ?, ?, ?, ?)");
                 statement.setInt(1, material.getBatchId());
                 statement.setString(2, material.getName());
@@ -115,6 +117,5 @@ public class MaterialDAO implements IMaterialDAO{
                 throw new DALException(ex.getMessage());
             }
         }
-
     }
 
