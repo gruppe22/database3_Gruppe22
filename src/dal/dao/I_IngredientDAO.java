@@ -7,7 +7,7 @@ import java.util.List;
 public interface I_IngredientDAO {
 
     int getSumOfIngredient() throws I_IngredientDAO.DALException; // ental
-    void getIngredient (int ingredientId) throws I_IngredientDAO.DALException;
+    IngredientDTO getIngredient (int ingredientId) throws I_IngredientDAO.DALException;
     List<IngredientDTO> getReorders()throws I_IngredientDAO.DALException;
     List<IngredientDTO> getIngredientsAll()throws I_IngredientDAO.DALException;
     List<IngredientDTO> getIngredientsActive()throws I_IngredientDAO.DALException;

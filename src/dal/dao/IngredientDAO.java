@@ -28,7 +28,7 @@ public class IngredientDAO implements I_IngredientDAO {
             IngredientDTO ingredient = new IngredientDTO();
 
             PreparedStatement statement = c.prepareStatement("select * from Ingredient where ingredientId = ?");
-            statement.setInt(1, ingredientId;
+            statement.setInt(1, ingredientId);
             ResultSet result = statement.executeQuery();
 
             if (result.next()) {
@@ -37,7 +37,6 @@ public class IngredientDAO implements I_IngredientDAO {
                 ingredient.setActive(result.getBoolean("active"));
                 ingredient.setReOrder(result.getBoolean("reOrder"));
             }
-            return ingredient;
         } catch (SQLException e) {
             throw new DALException(e.getMessage());
         }
@@ -66,7 +65,6 @@ public class IngredientDAO implements I_IngredientDAO {
                 throw new DALException(ex.getMessage());
             }
     }
-
 
     @Override
     public List<IngredientDTO> getIngredientsAll() throws DALException{
