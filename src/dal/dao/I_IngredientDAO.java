@@ -6,14 +6,25 @@ import java.util.List;
 
 public interface I_IngredientDAO {
 
-    int getSumOfIngredient(); // ental
-    List<IngredientDTO> getReorders();
-    List<IngredientDTO> getIngredientsAll();
-    List<IngredientDTO> getIngredientsAktive();
-    List<IngredientDTO> getIngredientsInAktive();
-    void CreateIngredient(IngredientDTO ingredient);
-    void UpdateIngredient(IngredientDTO ingredient);
-    void DeleteIngredient(IngredientDTO ingredient);
-    IngredientDTO getIngredient(IngredientDTO ingredient);
-    IngredientDTO getIngredient(String SearchParameter);
+    int getSumOfIngredient() throws I_IngredientDAO.DALException; // ental
+    void getIngredient (int ingredientId) throws I_IngredientDAO.DALException;
+    List<IngredientDTO> getReorders()throws I_IngredientDAO.DALException;
+    List<IngredientDTO> getIngredientsAll()throws I_IngredientDAO.DALException;
+    List<IngredientDTO> getIngredientsActive()throws I_IngredientDAO.DALException;
+    List<IngredientDTO> getIngredientsInActive()throws I_IngredientDAO.DALException;
+    void CreateIngredient(IngredientDTO ingredient)throws I_IngredientDAO.DALException;
+    void UpdateIngredient(IngredientDTO ingredient)throws I_IngredientDAO.DALException;
+    void DeleteIngredient(IngredientDTO ingredient)throws I_IngredientDAO.DALException;
+    IngredientDTO getIngredient(IngredientDTO ingredient)throws I_IngredientDAO.DALException;
+    IngredientDTO getIngredient(String SearchParameter)throws I_IngredientDAO.DALException;
+
+    class DALException extends Exception {
+        public DALException(String msg, Throwable e) {
+            super(msg, e);
+        }
+
+        public DALException(String msg) {
+            super(msg);
+        }
+    }
 }
