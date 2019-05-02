@@ -11,6 +11,9 @@ public interface I_IngredientDAO {
     List<IngredientDTO> getIngredientsAll();
     List<IngredientDTO> getIngredientsAktive();
     List<IngredientDTO> getIngredientsInAktive();
-
-
+    void CreateIngredient(IngredientDTO ingredient);
+    void UpdateIngredient(IngredientDTO ingredient);
+    void DeleteIngredient(IngredientDTO ingredient);
+    IngredientDTO getIngredient(IngredientDTO ingredient);
+    IngredientDTO getIngredient(String SearchParameter);
 }
