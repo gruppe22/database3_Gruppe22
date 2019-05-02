@@ -106,5 +106,15 @@ public class MaterialDAO implements IMaterialDAO{
         public void deleteMaterial(MaterialDTO material) throws DALException{
         }
 
+        public void SUPERdeleteMaterial(int batchId){
+            try (Connection connection = createConnection()) {
+                PreparedStatement statement = connection.prepareStatement("delete from Materials where batchId = ?");
+                statement.setInt(1, batchId);
+                statement.execute();
+            } catch (SQLException ex) {
+                throw new DALException(ex.getMessage());
+            }
+        }
+
     }
 
