@@ -2,12 +2,16 @@ package dal.dao;
 
 import dal.dto.ProductionDTO;
 
-public interface I_ProductionDAO {
-    ProductionDTO getBatch(int batchId) throws I_ProductionDAO.DALException;
+import java.util.List;
 
-    void createBatch(ProductionDTO batch) throws I_ProductionDAO.DALException;
-    void updateBatch(ProductionDTO batch) throws I_ProductionDAO.DALException;
-    void deleteBatch(ProductionDTO batch) throws I_ProductionDAO.DALException;
+public interface I_ProductionDAO {
+    ProductionDTO getProduction(int batchId) throws I_ProductionDAO.DALException;
+    List<ProductionDTO> getProductionList() throws I_ProductionDAO.DALException;
+
+    void createProduction(ProductionDTO production) throws I_ProductionDAO.DALException;
+    void updateProduction(ProductionDTO production) throws I_ProductionDAO.DALException;
+    void deleteProduction(ProductionDTO production) throws I_ProductionDAO.DALException;
+    void deleteProduction(int productionId) throws I_ProductionDAO.DALException;
 
     class DALException extends Exception {
         public DALException(String msg, Throwable e) {

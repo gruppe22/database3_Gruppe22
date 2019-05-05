@@ -1,6 +1,6 @@
 package dal.dto;
 
-import java.time.LocalTime;
+import java.sql.Date;
 
 public class ProductionDTO {
 
@@ -8,7 +8,7 @@ public class ProductionDTO {
     private int quantity;
     private String status;
     private int recipeId;
-    private LocalTime recipeEndDate;
+    private Date recipeEndDate;
     private int produktionsLeaderID;
 
     public int getProductionId() {
@@ -39,10 +39,10 @@ public class ProductionDTO {
         this.recipeId = recipeId;
     }
 
-    public LocalTime getRecipeEndDate() {
+    public Date getRecipeEndDate() {
         return recipeEndDate;
     }
-    public void setRecipeEndDate(LocalTime recipeEndDate) {
+    public void setRecipeEndDate(Date recipeEndDate) {
         this.recipeEndDate = recipeEndDate;
     }
 
