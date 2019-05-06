@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class IngredientDAO implements I_IngredientDAO {
 
     private Connection createConnection() throws SQLException {
-        return  DriverManager.getConnection("jdbc:mysql://ec2-52-30-211-3.eu-west-1.compute.amazonaws.com/s185015"
+        return DriverManager.getConnection("jdbc:mysql://ec2-52-30-211-3.eu-west-1.compute.amazonaws.com/s185015"
                 + "?user=s185015&password=629FTiYG3DNSPQV3r4YIU");
     }
 
@@ -23,7 +23,7 @@ public class IngredientDAO implements I_IngredientDAO {
 
     @Override
     public IngredientDTO getIngredient(int ingredientId) throws DALException {
-        try (Connection c = createConnection()){
+        try (Connection c = createConnection()) {
 
             IngredientDTO ingredient = new IngredientDTO();
 
@@ -39,7 +39,7 @@ public class IngredientDAO implements I_IngredientDAO {
                 ingredient.setExpired(result.getBoolean("expired"));
             }
             return ingredient;
-        } catch (SQLException e) {
+        } catch ( SQLException e ) {
             throw new DALException(e.getMessage());
         }
     }
@@ -49,27 +49,27 @@ public class IngredientDAO implements I_IngredientDAO {
         try (Connection connection = createConnection()) {
             List<IngredientDTO> ingredientList = new ArrayList<>();
 
-                Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery("select * from Ingredient where reOrder = 1");
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select * from Ingredient where reOrder = 1");
 
-                while (resultSet.next()) {
-                    IngredientDTO ingredient = new IngredientDTO();
-                    ingredient.setIngredientId(resultSet.getInt("ingredientId"));
-                    ingredient.setName(resultSet.getString("name"));
-                    ingredient.setActive(resultSet.getBoolean("active"));
-                    ingredient.setReOrder(resultSet.getBoolean("reOrder"));
+            while (resultSet.next()) {
+                IngredientDTO ingredient = new IngredientDTO();
+                ingredient.setIngredientId(resultSet.getInt("ingredientId"));
+                ingredient.setName(resultSet.getString("name"));
+                ingredient.setActive(resultSet.getBoolean("active"));
+                ingredient.setReOrder(resultSet.getBoolean("reOrder"));
 
-                    ingredientList.add(ingredient);
-                }
-                return ingredientList;
-
-            } catch (SQLException ex) {
-                throw new DALException(ex.getMessage());
+                ingredientList.add(ingredient);
             }
+            return ingredientList;
+
+        } catch ( SQLException ex ) {
+            throw new DALException(ex.getMessage());
+        }
     }
 
     @Override
-    public List<IngredientDTO> getIngredientsAll() throws DALException{
+    public List<IngredientDTO> getIngredientsAll() throws DALException {
         try (Connection connection = createConnection()) {
             List<IngredientDTO> ingredientList = new ArrayList<>();
 
@@ -84,11 +84,11 @@ public class IngredientDAO implements I_IngredientDAO {
                 ingredient.setReOrder(resultSet.getBoolean("reOrder"));
 
                 ingredientList.add(ingredient);
-                }
-                return ingredientList;
+            }
+            return ingredientList;
 
-        } catch (SQLException ex) {
-                throw new DALException(ex.getMessage());
+        } catch ( SQLException ex ) {
+            throw new DALException(ex.getMessage());
         }
     }
 
@@ -111,13 +111,13 @@ public class IngredientDAO implements I_IngredientDAO {
             }
             return ingredientList;
 
-        } catch (SQLException ex) {
+        } catch ( SQLException ex ) {
             throw new DALException(ex.getMessage());
         }
     }
 
     @Override
-    public List<IngredientDTO> getIngredientsInActive() throws DALException{
+    public List<IngredientDTO> getIngredientsInActive() throws DALException {
         try (Connection connection = createConnection()) {
             List<IngredientDTO> ingredientList = new ArrayList<>();
 
@@ -135,7 +135,7 @@ public class IngredientDAO implements I_IngredientDAO {
             }
             return ingredientList;
 
-        } catch (SQLException ex) {
+        } catch ( SQLException ex ) {
             throw new DALException(ex.getMessage());
         }
     }
@@ -151,14 +151,14 @@ public class IngredientDAO implements I_IngredientDAO {
             statement.setBoolean(3, ingredient.isReOrder());
             statement.executeUpdate();
 
-        } catch (SQLException ex) {
+        } catch ( SQLException ex ) {
             throw new DALException(ex.getMessage());
         }
 
     }
 
     @Override
-    public void UpdateIngredient(IngredientDTO ingredient) throws DALException{
+    public void UpdateIngredient(IngredientDTO ingredient) throws DALException {
         try (Connection connection = createConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     "update Ingredient set name = ?, active = ?, reOrder =? where ingredientId = ?");
@@ -166,7 +166,7 @@ public class IngredientDAO implements I_IngredientDAO {
             statement.setBoolean(3, ingredient.isActive());
             statement.setBoolean(4, ingredient.isReOrder());
             statement.executeUpdate();
-        } catch (SQLException ex) {
+        } catch ( SQLException ex ) {
             throw new DALException(ex.getMessage());
         }
 
@@ -174,51 +174,48 @@ public class IngredientDAO implements I_IngredientDAO {
 
     @Override
     // Sets the status of "expired" in the ingredient to true.
-    public void DeleteIngredient(IngredientDTO ingredient) throws DALException{
+    public void DeleteIngredient(IngredientDTO ingredient) throws DALException {
         try (Connection connection = createConnection()) {
             PreparedStatement statement = connection.prepareStatement(
                     "update Ingredient set expired = 1 where ingredientId = ?");
-                    statement.setInt(1,ingredient.getIngredientId());
-                    statement.execute();
+            statement.setInt(1, ingredient.getIngredientId());
+            statement.execute();
 
             statement.executeUpdate();
-        } catch (SQLException ex) {
+        } catch ( SQLException ex ) {
             throw new DALException(ex.getMessage());
         }
 
     }
 
     @Override
-    public IngredientDTO getIngredient(IngredientDTO ingredient)throws DALException{
+    public IngredientDTO getIngredient(IngredientDTO ingredient) throws DALException {
         try (Connection connection = createConnection()) {
 
 
             PreparedStatement statement = connection.prepareStatement(
                     "select * from Ingredient where ingredientId = ?");
-            statement.setInt(1,ingredient.getIngredientId());
-            ResultSet result =statement.executeQuery();
+            statement.setInt(1, ingredient.getIngredientId());
+            ResultSet result = statement.executeQuery();
 
-            while(result.next()) {
+            while (result.next()) {
                 IngredientDTO newingredient = new IngredientDTO();
 
-                    ingredient.setIngredientId(result.getInt("ingredientId"));
-                    ingredient.setName(result.getString("name"));
-                    ingredient.setActive(result.getBoolean("active"));
-                    ingredient.setReOrder(result.getBoolean("reOrder"));
-                    ingredient.setExpired(result.getBoolean("expired"));
-                }
-                return ingredient;
+                ingredient.setIngredientId(result.getInt("ingredientId"));
+                ingredient.setName(result.getString("name"));
+                ingredient.setActive(result.getBoolean("active"));
+                ingredient.setReOrder(result.getBoolean("reOrder"));
+                ingredient.setExpired(result.getBoolean("expired"));
+            }
+            return ingredient;
 
-        } catch (SQLException ex) {
+        } catch ( SQLException ex ) {
             throw new DALException(ex.getMessage());
         }
 
     }
-
-
-
-    @Override
-    public IngredientDTO getIngredient(String SearchParameter) {
-        return null;
-    }
 }
+
+
+
+

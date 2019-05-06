@@ -16,7 +16,7 @@ public interface I_IngredientDAO {
     void UpdateIngredient(IngredientDTO ingredient)throws I_IngredientDAO.DALException;
     void DeleteIngredient(IngredientDTO ingredient)throws I_IngredientDAO.DALException;
     IngredientDTO getIngredient(IngredientDTO ingredient)throws I_IngredientDAO.DALException;
-    IngredientDTO getIngredient(String SearchParameter)throws I_IngredientDAO.DALException;
+
 
     class DALException extends Exception {
         public DALException(String msg, Throwable e) {
