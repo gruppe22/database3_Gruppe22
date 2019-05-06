@@ -36,6 +36,7 @@ public class IngredientDAO implements I_IngredientDAO {
                 ingredient.setName(result.getString("name"));
                 ingredient.setActive(result.getBoolean("active"));
                 ingredient.setReOrder(result.getBoolean("reOrder"));
+                ingredient.setExpired(result.getBoolean("expired"));
             }
             return ingredient;
         } catch (SQLException e) {
@@ -172,13 +173,49 @@ public class IngredientDAO implements I_IngredientDAO {
     }
 
     @Override
-    public void DeleteIngredient(IngredientDTO ingredient) {
+    // Sets the status of "expired" in the ingredient to true.
+    public void DeleteIngredient(IngredientDTO ingredient) throws DALException{
+        try (Connection connection = createConnection()) {
+            PreparedStatement statement = connection.prepareStatement(
+                    "update Ingredient set expired = 1 where ingredientId = ?");
+                    statement.setInt(1,ingredient.getIngredientId());
+                    statement.execute();
+
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            throw new DALException(ex.getMessage());
+        }
+
     }
 
     @Override
-    public IngredientDTO getIngredient(IngredientDTO ingredient) {
-        return null;
+    public IngredientDTO getIngredient(IngredientDTO ingredient)throws DALException{
+        try (Connection connection = createConnection()) {
+
+
+            PreparedStatement statement = connection.prepareStatement(
+                    "select * from Ingredient where ingredientId = ?");
+            statement.setInt(1,ingredient.getIngredientId());
+            ResultSet result =statement.executeQuery();
+
+            while(result.next()) {
+                IngredientDTO newingredient = new IngredientDTO();
+
+                    ingredient.setIngredientId(result.getInt("ingredientId"));
+                    ingredient.setName(result.getString("name"));
+                    ingredient.setActive(result.getBoolean("active"));
+                    ingredient.setReOrder(result.getBoolean("reOrder"));
+                    ingredient.setExpired(result.getBoolean("expired"));
+                }
+                return ingredient;
+
+        } catch (SQLException ex) {
+            throw new DALException(ex.getMessage());
+        }
+
     }
+
+
 
     @Override
     public IngredientDTO getIngredient(String SearchParameter) {
