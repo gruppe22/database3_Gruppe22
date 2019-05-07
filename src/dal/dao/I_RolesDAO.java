@@ -7,8 +7,10 @@ import dal.dto.RoleDTO;
  * date : 07 / 05 / 19
  * */
 public interface I_RolesDAO {
-    void createRole();
-    void deleteRole();
-    RoleDTO getRole();
-    void updateRole();
+    void createRole(RoleDTO role);
+    void deleteRole(RoleDTO role);
+    void deleteRole(int id);
+    RoleDTO getRole(RoleDTO role);
+    RoleDTO getRole(int id);
+    void updateRole(RoleDTO role);
 }

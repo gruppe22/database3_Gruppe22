@@ -1,7 +1,6 @@
 package dal.dao;
 
 import dal.dto.UserDTO;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -13,10 +12,7 @@ public class UserDAO implements IUserDAO {
         Connector connector = new Connector();
         return connector.createConnection();
     }
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
+
     private List<String> getRolesFromInnerJoin(Connection connection, int userId) throws SQLException {
         PreparedStatement statement = connection.prepareStatement("SELECT `roleName` FROM `Roles` INNER JOIN `relUserRoles` ON `Roles`.`roleId`=`relUserRoles`.`rolesId` WHERE `userId` = ?");
         statement.setInt(1, userId);
@@ -30,10 +26,6 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     public void createUser(UserDTO user) throws DALException {
         try (Connection connection = createConnection()) {
             // insert into Table Users
@@ -76,10 +68,6 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     public UserDTO getUser(int userId) throws DALException {
         try (Connection connection = createConnection()){
 
@@ -115,10 +103,6 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     public List<UserDTO> getUserList() throws DALException {
         try (Connection connection = createConnection()) {
             List<UserDTO> userList = new ArrayList<>();
@@ -152,10 +136,6 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     public void updateUser(UserDTO user) throws DALException {
         try (Connection connection = createConnection()) {
 
@@ -173,10 +153,6 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     public void deleteUser(int userId) throws DALException {
         try (Connection connection = createConnection()) {
 
@@ -191,10 +167,6 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     public void deleteUser(UserDTO user) throws DALException{
         deleteUser(user.getUserId());
     }

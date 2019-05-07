@@ -14,17 +14,6 @@ class MaterialDAOTest {
     MaterialDAO MDAO = new MaterialDAO();
     MaterialDTO myM_n1;
     MaterialDTO myM_n2;
-    /*
-
-    private int batchId;
-    private String name;
-    private int ingredientId;
-    private int quantity;
-    private String supplier;
-    private boolean expired;
-
-    * */
-
 
     @Test
     void createMaterial()throws IMaterialDAO.DALException{
@@ -49,7 +38,7 @@ class MaterialDAOTest {
             assertEquals(myM.isExpired(), myM_n1.isExpired());
 
         MDAO.SUPERdeleteMaterial(batchId);
-    }
+    };
 
     @Test
     void getMaterial()throws IMaterialDAO.DALException {
@@ -60,6 +49,7 @@ class MaterialDAOTest {
         int quantity = 2500025;
         String supplier = "min SupplierY";
         boolean expired = false;
+
 
         MaterialDTO myM = SetupMaterial(batchId, name, ingredientId, quantity, supplier, expired);
             MDAO.createMaterial(myM);
@@ -89,9 +79,6 @@ class MaterialDAOTest {
     void deleteMaterial() {
     }
 
-    @Test
-    void deleteMaterial1() {
-    }
 
     public MaterialDTO SetupMaterial(int batchId, String name, int ingredientId, int quantity, String supplier, boolean expired){
         MaterialDTO myM = new MaterialDTO();
