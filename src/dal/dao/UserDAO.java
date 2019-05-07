@@ -4,67 +4,110 @@ import dal.dto.UserDTO;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class UserDAO implements IUserDAO {
 
     private Connection createConnection() throws SQLException {
-        return  DriverManager.getConnection("jdbc:mysql://ec2-52-30-211-3.eu-west-1.compute.amazonaws.com/s185015"
-                + "?user=s185015&password=629FTiYG3DNSPQV3r4YIU");
+        Connector connector = new Connector();
+        return connector.createConnection();
+    }
+    /**
+     * author: Hans P Byager
+     * date : 07 / 05 / 19
+     * */
+    private List<String> getRolesFromInnerJoin(Connection connection, int userId) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("SELECT `roleName` FROM `Roles` INNER JOIN `relUserRoles` ON `Roles`.`roleId`=`relUserRoles`.`rolesId` WHERE `userId` = ?");
+        statement.setInt(1, userId);
+        ResultSet result = statement.executeQuery();
+
+        List<String> roles = new LinkedList<>();
+        while (result.next()) {
+            roles.add(result.getString("roleName"));
+        }
+        return roles;
     }
 
     @Override
+    /**
+     * author: Hans P Byager
+     * date : 07 / 05 / 19
+     * */
     public void createUser(UserDTO user) throws DALException {
         try (Connection connection = createConnection()) {
-            PreparedStatement statement = connection.prepareStatement("insert into Users values (?, ?, ?)");
+            // insert into Table Users
+            // then update Relational Table with Users And Roles
+
+            // INSERT INTO USERS TABLE
+            PreparedStatement statement = connection.prepareStatement("insert into  `Users`(`userId`, `userName`,`ini`,`expired`) values (?, ?, ? ,0)");
             statement.setInt(1, user.getUserId());
             statement.setString(2, user.getUserName());
             statement.setString(3, user.getIni());
             statement.executeUpdate();
 
+            // FOR EACH ROLE INSERT A LINK INTO THE RELATIONAL TABLE
             for (String role : user.getRoles()) {
-                statement = connection.prepareStatement("insert into relUserRoles values (?, ?)");
-                statement.setInt(1, user.getUserId());
+                // For each role we need the Role id to put into the Relational table.
+                // so we search for the name of the role to se if exists. and get its ID value from the resultset
+                PreparedStatement roleExists = connection.prepareStatement("SELECT * FROM  `Roles` WHERE `roleName` = ?");
+                roleExists.setString(1, role);
+                ResultSet result = roleExists.executeQuery();
 
-                if (role.contains("administrator"))
-                    statement.setInt(2, 10);
-                else if (role.contains("pedel"))
-                    statement.setInt(2, 11);
+                if(result.next()) {
+                    int id = result.getInt("roleId");
 
-                statement.executeUpdate();
+                    // Now we need to enter the Id of the user and corresponding role id, in the relational table.
+                    // to link between the two entities.
+                    PreparedStatement relation = connection.prepareStatement("insert into `relUserRoles`(`userId`,`rolesId`) values (?, ?)");
+                    relation.setInt(1, user.getUserId());
+                    relation.setInt(2, id);
+                    relation.execute();
+
+                }else{
+                    System.out.println("no Role Named" + role );
+                }
             }
-        } catch (SQLException ex) {
-            throw new DALException(ex.getMessage());
+
+            // Now it ought to be done so close connection.
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
+    /**
+     * author: Hans P Byager
+     * date : 07 / 05 / 19
+     * */
     public UserDTO getUser(int userId) throws DALException {
-        try (Connection c = createConnection()){
+        try (Connection connection = createConnection()){
 
-            UserDTO user = new UserDTO();
-            List<String> roles = new ArrayList<>();
+            // GETTING THE USER  --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+            UserDTO newUser = new UserDTO();
 
-            PreparedStatement statement = c.prepareStatement("select * from Users where userId = ?");
+            PreparedStatement statement = connection.prepareStatement("select * from `Users` where `userId` = ?");
             statement.setInt(1, userId);
             ResultSet result = statement.executeQuery();
 
             if (result.next()) {
-                user.setUserId(result.getInt("userId"));
-                user.setUserName(result.getString("userName"));
-                user.setIni(result.getString("ini"));
+                newUser.setUserId(result.getInt("userId"));
+                newUser.setUserName(result.getString("userName"));
+                newUser.setIni(result.getString("ini"));
+                newUser.setExpired(result.getBoolean("expired"));
+
+            }else{
+
+                return null;
             }
 
-            statement = c.prepareStatement(
-                    "select * from relUserRoles rr join role r on rr.roleId = r.roleId where rr.userId = ?");
-            statement.setInt(1, userId);
-            result = statement.executeQuery();
+            // GETTING THE ROLES OF THE USER --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
-            while (result.next()) {
-                roles.add(result.getString("role"));
-            }
-            user.setRoles(roles);
-            return user;
+            // INNER JOINS Command, then Filtering.
+            // Doing this in a method, because it needs to be done several times the Exact same way.
+            List<String> roles = getRolesFromInnerJoin(connection, userId);
+            newUser.setRoles(roles);
+            return newUser;
 
         } catch (SQLException e) {
             throw new DALException(e.getMessage());
@@ -72,32 +115,35 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
+    /**
+     * author: Hans P Byager
+     * date : 07 / 05 / 19
+     * */
     public List<UserDTO> getUserList() throws DALException {
         try (Connection connection = createConnection()) {
             List<UserDTO> userList = new ArrayList<>();
 
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select * from Users");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM `Users` WHERE `expired` = 0;");
 
             while (resultSet.next()) {
+                // Setting up a New User DTO
                 UserDTO user = new UserDTO();
+
+                // All parameters But Roles due to it being in a differnt table
                 user.setUserId(resultSet.getInt("userId"));
                 user.setUserName(resultSet.getString("userName"));
                 user.setIni(resultSet.getString("ini"));
+                user.setExpired(resultSet.getBoolean("expired"));
 
-                PreparedStatement s = connection.prepareStatement(
-                        "select * from relUserRoles rr join role r on rr.roleId = r.roleId where rr.userId = ?");
-                s.setInt(1, user.getUserId());
-                ResultSet result = s.executeQuery();
-
-                List<String> roles = new ArrayList<>();
-
-                while (result.next()) {
-                    roles.add(result.getString("role"));
-                }
+                // Getting Roles for this User from the relational table
+                List<String> roles = getRolesFromInnerJoin(connection, user.getUserId());
                 user.setRoles(roles);
+
+                // then at the end ad to the list and do it again.
                 userList.add(user);
             }
+
             return userList;
 
         } catch (SQLException ex) {
@@ -106,53 +152,67 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
+    /**
+     * author: Hans P Byager
+     * date : 07 / 05 / 19
+     * */
     public void updateUser(UserDTO user) throws DALException {
         try (Connection connection = createConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
-                    "update Users set userName = ?, ini = ? where userId = ?");
+
+            PreparedStatement statement = connection.prepareStatement("UPDATE `Users` SET `userName`= ?,`ini`= ?,`expired` = ? WHERE `userId` = ?;");
             statement.setString(1, user.getUserName());
             statement.setString(2, user.getIni());
-            statement.setInt(3, user.getUserId());
+            statement.setBoolean(3, user.isExpired());
+            statement.setInt(4, user.getUserId());
             statement.executeUpdate();
 
-            statement = connection.prepareStatement(
-                    "delete from relUserRoles where userId = ?");
-            statement.setInt(1, user.getUserId());
-            statement.executeUpdate();
 
-            for (String role : user.getRoles()) {
-                statement = connection.prepareStatement("insert into relUserRoles values (?, ?)");
-                statement.setInt(1, user.getUserId());
-
-                if (role.contains("administrator"))
-                    statement.setInt(2, 10);
-                else if (role.contains("pedel"))
-                    statement.setInt(2, 11);
-
-                statement.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new DALException(ex.getMessage());
+        } catch (SQLException e) {
+            throw new DALException(e.getMessage());
         }
     }
 
     @Override
+    /**
+     * author: Hans P Byager
+     * date : 07 / 05 / 19
+     * */
     public void deleteUser(int userId) throws DALException {
         try (Connection connection = createConnection()) {
-            PreparedStatement statement = connection.prepareStatement("delete from relUserRole where userId = ?");
-            statement.setInt(1, userId);
-            statement.execute();
 
-            statement = connection.prepareStatement("delete from Users where userId = ?");
-            statement.setInt(1, userId);
-            statement.execute();
-        } catch (SQLException ex) {
-            throw new DALException(ex.getMessage());
+            PreparedStatement statement = connection.prepareStatement("UPDATE `Users` SET `expired` = ? WHERE `userId` = ?");
+            statement.setBoolean(1, true);
+            statement.setInt(2, userId);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DALException(e.getMessage());
         }
     }
 
     @Override
+    /**
+     * author: Hans P Byager
+     * date : 07 / 05 / 19
+     * */
     public void deleteUser(UserDTO user) throws DALException{
-
+        deleteUser(user.getUserId());
     }
+
+    public void superDeleteUser(UserDTO user) throws DALException{
+        try (Connection connection = createConnection()) {
+
+            PreparedStatement statement = connection.prepareStatement("DELETE FROM relUserRoles Where `userId` = ?;");
+            statement.setInt(1, user.getUserId());
+            statement.execute();
+            statement = connection.prepareStatement("DELETE FROM `Users` WHERE `userId` = ?;");
+            statement.setInt(1, user.getUserId());
+            statement.execute();
+
+
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
