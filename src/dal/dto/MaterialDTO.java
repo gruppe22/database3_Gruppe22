@@ -9,6 +9,20 @@ public class MaterialDTO {
     private String supplier;
     private boolean expired;
 
+
+    public MaterialDTO (int batchId, String name, int ingredientId, int quantity, String supplier, boolean expired){
+        this.batchId = batchId;
+        this.name = name;
+        this.ingredientId = ingredientId;
+        this.quantity = quantity;
+        this.supplier = supplier;
+        this.expired = expired;
+    }
+
+    public MaterialDTO() {
+
+    }
+
     public int getBatchId() {
         return batchId;
     }

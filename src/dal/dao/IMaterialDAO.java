@@ -11,7 +11,7 @@ public interface IMaterialDAO {
     void createMaterial(MaterialDTO materialDTO) throws IMaterialDAO.DALException;
     void updateMaterial(MaterialDTO materialDTO) throws IMaterialDAO.DALException;
     void deleteMaterial(MaterialDTO materialDTO) throws IMaterialDAO.DALException;
-    void deleteMaterial(int materialId) throws IMaterialDAO.DALException;
+     void SUPERdeleteMaterial(int batchId)throws DALException;
 
     class DALException extends Exception {
         public DALException(String msg, Throwable e) {

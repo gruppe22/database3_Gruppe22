@@ -5,91 +5,130 @@ import dal.dao.MaterialDAO;
 import dal.dto.MaterialDTO;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Queue;
+import java.util.ArrayList;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class MaterialDAOTest {
-    MaterialDAO MDAO = new MaterialDAO();
-    MaterialDTO myM_n1;
-    MaterialDTO myM_n2;
+
+    IMaterialDAO MDAO = new MaterialDAO();
+    MaterialDTO databaseTestMaterialOne;
+    MaterialDTO databaseTestMaterialTwo;
+
+
+
+
+
 
     @Test
     void createMaterial()throws IMaterialDAO.DALException{
 
-        int batchId = 25;
-        String name = "Bobs Materiale Grej";
-        int ingredientId = 255;
-        int quantity = 2500025;
-        String supplier = "min Supplier";
-        boolean expired = false;
 
-        MaterialDTO myM = SetupMaterial(batchId, name, ingredientId, quantity, supplier, expired);
+            MaterialDTO objectTestMaterial = new MaterialDTO(255, "Bobs Materiale Grej", 1, 2500025, "Testsupplier A/S", false);
+            MDAO.createMaterial(objectTestMaterial);
+            databaseTestMaterialOne = MDAO.getMaterial(255);
 
-            MDAO.createMaterial(myM);
-            myM_n1 = MDAO.getMaterial(ingredientId);
+            assertEquals(objectTestMaterial.getBatchId(), databaseTestMaterialOne.getBatchId());
+            assertEquals(objectTestMaterial.getIngredientId(), databaseTestMaterialOne.getIngredientId());
+            assertEquals(objectTestMaterial.getName(), databaseTestMaterialOne.getName());
+            assertEquals(objectTestMaterial.getQuantity(), databaseTestMaterialOne.getQuantity());
+            assertEquals(objectTestMaterial.getSupplier(), databaseTestMaterialOne.getSupplier());
+            assertEquals(objectTestMaterial.isExpired(), databaseTestMaterialOne.isExpired());
+            MDAO.SUPERdeleteMaterial(255);
+    }
 
-            assertEquals(myM.getBatchId(), myM_n1.getBatchId());
-            assertEquals(myM.getIngredientId(), myM_n1.getIngredientId());
-            assertEquals(myM.getName(), myM_n1.getName());
-            assertEquals(myM.getQuantity(), myM_n1.getQuantity());
-            assertEquals(myM.getSupplier(), myM_n1.getSupplier());
-            assertEquals(myM.isExpired(), myM_n1.isExpired());
-
-        MDAO.SUPERdeleteMaterial(batchId);
-    };
 
     @Test
     void getMaterial()throws IMaterialDAO.DALException {
 
-        int batchId = 24;
-        String name = "Bobsys Materiale Grej";
-        int ingredientId = 252;
-        int quantity = 2500025;
-        String supplier = "min SupplierY";
-        boolean expired = false;
 
 
-        MaterialDTO myM = SetupMaterial(batchId, name, ingredientId, quantity, supplier, expired);
+
+        MaterialDTO myM = new MaterialDTO(255, "Bobs Materiale Grej", 1, 2500025, "Testsupplier A/S", false);
+
+
             MDAO.createMaterial(myM);
-            myM_n2 = MDAO.getMaterial(ingredientId);
+            databaseTestMaterialTwo = MDAO.getMaterial(255);
 
-            assertEquals(myM.getBatchId(), myM_n2.getBatchId());
-            assertEquals(myM.getIngredientId(), myM_n2.getIngredientId());
-            assertEquals(myM.getName(), myM_n2.getName());
-            assertEquals(myM.getQuantity(), myM_n2.getQuantity());
-            assertEquals(myM.getSupplier(), myM_n2.getSupplier());
-            assertEquals(myM.isExpired(), myM_n2.isExpired());
+            assertEquals(myM.getBatchId(), databaseTestMaterialTwo.getBatchId());
+            assertEquals(myM.getIngredientId(), databaseTestMaterialTwo.getIngredientId());
+            assertEquals(myM.getName(), databaseTestMaterialTwo.getName());
+            assertEquals(myM.getQuantity(), databaseTestMaterialTwo.getQuantity());
+            assertEquals(myM.getSupplier(), databaseTestMaterialTwo.getSupplier());
+            assertEquals(myM.isExpired(), databaseTestMaterialTwo.isExpired());
 
-        MDAO.SUPERdeleteMaterial(batchId);
+        MDAO.SUPERdeleteMaterial(255);
     }
 
     @Test
     void getMaterialList()throws IMaterialDAO.DALException {
-        Queue<MaterialDTO> myDtos = (Queue<MaterialDTO>) MDAO.getMaterialList();
+
+        // Create object myMaterial with random values and insert into database.
+        MaterialDTO myMaterial = new MaterialDTO(255, "Bobs Materiale Grej", 1, 2500025, "Testsupplier A/S", false);
+        MDAO.createMaterial(myMaterial);
+        // Pull list from database and check if myMaterial is in it.
+        ArrayList<MaterialDTO> myDtos = (ArrayList<MaterialDTO>) MDAO.getMaterialList();
+
+        boolean result = false;
+                for(MaterialDTO m : myDtos)
+                    if(myMaterial.getBatchId()==m.getBatchId())
+                        result = true;
+
+        assertTrue(result);
+
+        MDAO.SUPERdeleteMaterial(myMaterial.getBatchId());
+
+
 
     }
 
     @Test
-    void updateMaterial() {
+    void updateMaterial() throws IMaterialDAO.DALException {
+
+
+        // Create object myMaterial with random values.
+        MaterialDTO myMaterial = new MaterialDTO(255, "Bobs Materiale Grej", 1, 2500025, "Testsupplier A/S", false);
+        // Create the material in the database
+        MDAO.createMaterial(myMaterial);
+        // change values in object
+        myMaterial.setExpired(true);
+        myMaterial.setName("Hopsa");
+        myMaterial.setQuantity(750);
+        myMaterial.setSupplier("Brian");
+        // change values in database
+        MDAO.updateMaterial(myMaterial);
+
+        // Test, if both object and database materials have the same newly updated values
+        assertEquals(myMaterial.getBatchId(),MDAO.getMaterial(255).getBatchId());
+        assertEquals(myMaterial.getName(),MDAO.getMaterial(255).getName());
+        assertEquals(myMaterial.getQuantity(),MDAO.getMaterial(255).getQuantity());
+        assertEquals(myMaterial.getSupplier(),MDAO.getMaterial(255).getSupplier());
+        assertEquals(myMaterial.isExpired(),MDAO.getMaterial(255).isExpired());
+        // Rinse the database from the test-generated filt
+        MDAO.SUPERdeleteMaterial(255);
     }
+
 
     @Test
-    void deleteMaterial() {
+    void deleteMaterial() throws IMaterialDAO.DALException {
+        // Create object myMaterial with expired set to false.
+        MaterialDTO myMaterial = new MaterialDTO(255, "Bobs Materiale Grej", 1, 2500025, "Testsupplier A/S", false);
+        // Create the material in the database
+        MDAO.createMaterial(myMaterial);
+        // Set expired = True in object
+        myMaterial.setExpired(true);
+        // Set expired = True in database
+        MDAO.deleteMaterial(myMaterial);
+
+        // Test, if both object and database materials are both true in expired.
+        assertEquals(myMaterial.isExpired(),MDAO.getMaterial(255).isExpired());
+        // Rinse the database from the test-generated filt
+        MDAO.SUPERdeleteMaterial(255);
     }
 
 
-    public MaterialDTO SetupMaterial(int batchId, String name, int ingredientId, int quantity, String supplier, boolean expired){
-        MaterialDTO myM = new MaterialDTO();
-        myM.setName(name);
-        myM.setBatchId(batchId);
-        myM.setIngredientId(ingredientId);
-        myM.setQuantity(quantity);
-        myM.setSupplier(supplier);
-        myM.setExpired(expired);
 
-        return myM;
-    }
+
 
 }

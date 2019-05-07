@@ -9,14 +9,16 @@ import java.io.IOException;
 
 public class MaterialDAO implements IMaterialDAO{
 
-        private Connection createConnection() throws SQLException {
-            return  DriverManager.getConnection("jdbc:mysql://ec2-52-30-211-3.eu-west-1.compute.amazonaws.com/s185015"
-                    + "?user=s185015&password=629FTiYG3DNSPQV3r4YIU");
-        }
+    private Connection createConnection() throws SQLException {
+        Connector connector = new Connector();
+        return connector.createConnection();
+    }
+
 
         @Override
         public void createMaterial(MaterialDTO material) throws DALException {
             try (Connection connection = createConnection()) {
+
 
                 PreparedStatement statement = connection.prepareStatement("insert into Materials values (?, ?, ?, ?, ?, ?)");
                 statement.setInt(1, material.getBatchId());
@@ -25,7 +27,7 @@ public class MaterialDAO implements IMaterialDAO{
                 statement.setInt(4, material.getQuantity());
                 statement.setString(5, material.getSupplier());
                 statement.setBoolean(6,material.isExpired());
-                statement.executeUpdate();
+                statement.execute();
 
             } catch (SQLException ex) {
                 throw new DALException(ex.getMessage());
@@ -35,22 +37,25 @@ public class MaterialDAO implements IMaterialDAO{
         @Override
         public MaterialDTO getMaterial (int batchId) throws DALException {
             try (Connection c = createConnection()){
+                MaterialDTO materialnotfound = new MaterialDTO(0,"NOT FOUND",0,0,"NOT FOUND",true);
 
-                MaterialDTO material = new MaterialDTO();
 
                 PreparedStatement statement = c.prepareStatement("select * from Materials where batchId = ?");
                 statement.setInt(1, batchId);
                 ResultSet result = statement.executeQuery();
 
                 if (result.next()) {
-                    material.setBatchId(result.getInt("batchId"));
-                    material.setName(result.getString("name"));
-                    material.setSupplier(result.getString("supplier"));
-                    material.setIngredientId(result.getInt("ingredientId"));
-                    material.setQuantity(result.getInt("quantity"));
-                    material.setExpired(result.getBoolean("expired"));
+                    MaterialDTO material = new MaterialDTO(
+                            result.getInt("batchId"),
+                            result.getString("name"),
+                            result.getInt("ingredientId"),
+                            result.getInt("quantity"),
+                            result.getString("supplier"),
+                            result.getBoolean("expired"));
+                            return material;
                 }
-                return material;
+
+                    return materialnotfound;
             } catch (SQLException e) {
                 throw new DALException(e.getMessage());
             }
@@ -65,12 +70,13 @@ public class MaterialDAO implements IMaterialDAO{
                 ResultSet resultSet = statement.executeQuery("select * from Materials where expired = 0");
 
                 while (resultSet.next()) {
-                    MaterialDTO material = new MaterialDTO();
-                    material.setBatchId(resultSet.getInt("batchId"));
-                    material.setName(resultSet.getString("name"));
-                    material.setSupplier(resultSet.getString("supplier"));
-                    material.setIngredientId(resultSet.getInt("ingredientId"));
-                    material.setQuantity(resultSet.getInt("quantity"));
+                    MaterialDTO material = new MaterialDTO(
+                            resultSet.getInt("batchId"),
+                            resultSet.getString("name"),
+                            resultSet.getInt("ingredientId"),
+                            resultSet.getInt("quantity"),
+                            resultSet.getString("supplier"),
+                            resultSet.getBoolean("expired"));
 
                     materialList.add(material);
                 }
@@ -85,10 +91,14 @@ public class MaterialDAO implements IMaterialDAO{
         public void updateMaterial(MaterialDTO material) throws DALException {
             try (Connection connection = createConnection()) {
                 PreparedStatement statement = connection.prepareStatement(
-                        "update Materials set name = ?, supplier = ?, expired = ? where userId = ?");
-                statement.setString(1, material.getName());
-                statement.setString(2, material.getSupplier());
-                statement.setBoolean(3,material.isExpired());
+                        "update Materials set batchId = ?, name = ?, ingredientId = ?, quantity = ?, supplier = ?, expired = ? where batchId = ?");
+                statement.setInt(1, material.getBatchId());
+                statement.setString(2, material.getName());
+                statement.setInt(3,material.getIngredientId());
+                statement.setInt(4,material.getQuantity());
+                statement.setString(5,material.getSupplier());
+                statement.setBoolean(6,material.isExpired());
+                statement.setInt(7,material.getBatchId());
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 throw new DALException(ex.getMessage());
@@ -96,19 +106,19 @@ public class MaterialDAO implements IMaterialDAO{
         }
 
         @Override
-        public void deleteMaterial(int batchId) throws DALException {
+        public void deleteMaterial(MaterialDTO material) throws DALException {
             try (Connection connection = createConnection()) {
-                PreparedStatement statement = connection.prepareStatement("delete from Materials where batchId = ?");
-                statement.setInt(1, batchId);
-                statement.execute();
+                PreparedStatement statement = connection.prepareStatement(
+                        "update Materials set expired = ? where batchId = ?");
+                statement.setBoolean(1, material.isExpired());
+                statement.setInt(2,material.getBatchId());
+                statement.executeUpdate();
             } catch (SQLException ex) {
                 throw new DALException(ex.getMessage());
             }
         }
 
-        @Override
-        public void deleteMaterial(MaterialDTO material) throws DALException{
-        }
+
 
         public void SUPERdeleteMaterial(int batchId) throws DALException {
             try (Connection connection = createConnection()) {
