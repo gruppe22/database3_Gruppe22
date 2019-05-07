@@ -34,6 +34,10 @@ public class IngredientDTO {
     public void setReOrder(boolean reOrder) {
         this.reOrder = reOrder;
     }
+
+    public boolean isExpired() {
+        return expired;
+    }
     public void setExpired(boolean expired){
         this.expired=expired;
 

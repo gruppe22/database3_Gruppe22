@@ -29,10 +29,6 @@ class UserDAOTest {
         }
     }
 
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     @Test
     void createUser() {
         UserDTO user = setupUser();
@@ -59,10 +55,6 @@ class UserDAOTest {
     }
 
     @Test
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     void getUser() {
         try {
             UserDTO user = setupUser();
@@ -85,10 +77,6 @@ class UserDAOTest {
     }
 
     @Test
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     void getUserList() {
         try {
             // the interesting thing here is that if something has bin expired it is no longer part of the list.
@@ -102,6 +90,8 @@ class UserDAOTest {
                 UserDTO thisUser = allUsers.get(i);
                 if(thisUser.getUserId() == user.getUserId()){
                     assert(true);
+                }else{
+                    assert(false);
                 }
             }
 
@@ -118,10 +108,6 @@ class UserDAOTest {
     }
 
     @Test
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     void updateUser(){
         try {
             UserDTO user = setupUser();
@@ -145,10 +131,6 @@ class UserDAOTest {
     }
 
     @Test
-    /**
-     * author: Hans P Byager
-     * date : 07 / 05 / 19
-     * */
     void deleteUser(){
         try {
             UserDTO user = setupUser();
