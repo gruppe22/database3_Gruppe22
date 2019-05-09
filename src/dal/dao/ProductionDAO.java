@@ -106,6 +106,4 @@ public class ProductionDAO implements I_ProductionDAO {
         @Override
         public void deleteProduction(ProductionDTO production) throws DALException{
         }
-
-
     }

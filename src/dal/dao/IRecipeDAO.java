@@ -7,6 +7,7 @@ import java.util.List;
 public interface IRecipeDAO {
     RecipeDTO getRecipe(int recipeId) throws IRecipeDAO.DALException;
     List<RecipeDTO> getRecipeList() throws IRecipeDAO.DALException;
+    List<RecipeDTO> getRecipeListSpecifik(int id);
 
     void createRecipe(RecipeDTO recipe) throws IRecipeDAO.DALException;
     void updateRecipe(RecipeDTO recipe) throws IRecipeDAO.DALException;
