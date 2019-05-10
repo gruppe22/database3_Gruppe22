@@ -9,15 +9,12 @@ import java.sql.*;
 import java.util.LinkedList;
 import java.util.List;
 
+import static dal.dao.Connector.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProductionDAOTest {
     // Utility Methods setting up tests data
-    private Connection createConnection() throws SQLException {
-        Connector connector = new Connector();
-        return connector.createConnection();
-    }
-
+    public final String DELETE_SENTENCE ="delete";
     // SETUP NECESARY FUNCTIONS
     private IngredientDTO getSomeIngredients() throws Exception{
         IngredientDAO dao = new IngredientDAO();
@@ -52,13 +49,15 @@ class ProductionDAOTest {
         dto.setQuantity(500);
         dto.setRecipeId(25);
         Timestamp dateTime = new Timestamp(System.currentTimeMillis());
-        dto.setEndDate(dateTime );
+        dto.setEndDate( dateTime );
         List<IngredientDTO> ingres = new LinkedList<>();
         ingres.add(ingredients);
         dto.setIngredients(ingres);// getsomeIngredients defined above.
+
         RecipeDAO recipeDAO = new RecipeDAO();
         recipeDAO.createRecipe(dto);
-        return dto;
+        RecipeDTO dto2 = recipeDAO.getRecipe(dto.getRecipeId());
+        return dto2;
     }
     private ProductionDTO getTestProd(RecipeDTO recipe)throws Exception{
         ProductionDAO dao = new ProductionDAO();
@@ -100,27 +99,47 @@ class ProductionDAOTest {
 
 --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
 
-    @Test
-    private void tearDown1(Connection c)throws  Exception {
-        try (Connection connection = createConnection() ) {
+    @AfterEach
+    private void tearDown1(){
+        try (Connection conn = static_createConnection() ) {
 
-            PreparedStatement statement = connection.prepareStatement("DELETE FROM `relIngredientRecipe` WHERE `ingredientId` = 25;");
+/* lock   */static_lockTables(conn, "relIngredientRecipe","relProdMat");
+/* start  */static_startTransAction(conn);
+
+            PreparedStatement statement = conn.prepareStatement("DELETE FROM `relIngredientRecipe` WHERE `ingredientId` = 25;");
             statement.execute();
 
-            statement = connection.prepareStatement("DELETE FROM `relProdMat` WHERE `batchId` = 25");
+            statement = conn.prepareStatement("DELETE FROM `relProdMat` WHERE `batchId` = 25");
             statement.execute();
 
-            MaterialDAO mDao = new MaterialDAO();
+            statement = conn.prepareStatement("delete from Materials where batchId =  25");
+            statement.execute();
+
+            statement = conn.prepareStatement("DELETE FROM Ingredient WHERE `ingredientId` = 25");
+            statement.execute();
+
+            statement = conn.prepareStatement("delete from `Production` where  `productionId` = 25");
+            statement.execute();
+
+            statement = conn.prepareStatement("delete from `Recipe` where `recipeId` = 25");
+            statement.execute();
+
+
+
+/* commit */static_commitTransAction(conn);
+/* unlock */static_unlockTables(conn);
+
+           /* MaterialDAO mDao = new MaterialDAO();
             mDao.SUPERdeleteMaterial(25);
 
             IngredientDAO idao = new IngredientDAO();
             idao.superDelete(25);
 
             ProductionDAO pDao = new ProductionDAO();
-            pDao.superDelete(25);
+            pDao.superDelete(25);*
 
             RecipeDAO rDao = new RecipeDAO();
-            rDao.superDelete(25);
+            rDao.superDelete(25);*/
 
         }catch (Exception e){
             e.printStackTrace();
@@ -231,7 +250,7 @@ class ProductionDAOTest {
             ProductionDTO production =  getTestProd(recipe); // this is a quick setup for testing purposes. now this also Creates a Production.
 
             ProductionDAO dao = new ProductionDAO();
-            List<ProductionDTO> dtoList = dao.getProductionListALL();
+            List<ProductionDTO> dtoList = dao.getProductionList();
 
             boolean asserted = false;
             for(int u = 0; u < dtoList.size(); u++) {
@@ -251,7 +270,7 @@ class ProductionDAOTest {
         }
     }
     @Test
-    void getProductionList(RecipeDTO recipe){
+    void getProductionListRecipeDTO(){
         try {
 
             //1st Create Ingredients
@@ -331,7 +350,7 @@ class ProductionDAOTest {
             ProductionDTO production =  getTestProd(recipe); // this is a quick setup for testing purposes. now this also Creates a Production.
 
             ProductionDAO dao = new ProductionDAO();
-            dao.deleteProduction(production);
+            dao.deleteProduction(production, DELETE_SENTENCE);
             ProductionDTO dto2 = dao.getProduction(production.getProductionId());
 
             assertNotEquals(production.getStatus() , dto2.getStatus());

@@ -1,27 +1,24 @@
 package dal.dao;
 
 import dal.dto.IngredientDTO;
-import dal.dto.MaterialDTO;
 
 import java.sql.*;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
+
+import static dal.dao.Connector.*;
 
 public class IngredientDAO implements I_IngredientDAO {
 
-    private Connection createConnection() throws SQLException {
-        Connector connector = new Connector();
-        return connector.createConnection();
-    }
-
     @Override
-    public int getSumOfIngredient(int id) {
-        try (Connection connection = createConnection()) {
-        PreparedStatement statement = connection.prepareStatement("Select `quantity` FROM `Materials` WHERE `ingredientId` = ? AND `expired` = 0;");
+    public int getSumOfIngredient(int id) throws DALException {
+        try (Connection conn = static_createConnection()) {
+
+/* lock  */ static_lockTables(conn,"Materials");
+
+        PreparedStatement statement = conn.prepareStatement("Select `quantity` FROM `Materials` WHERE `ingredientId` = ? AND `expired` = 0;");
         statement.setInt(1, id);
         ResultSet resultSet = statement.executeQuery();
 
@@ -32,22 +29,23 @@ public class IngredientDAO implements I_IngredientDAO {
             inputs++;
             summary = summary + resultSet.getInt("quantity");
         }
-
+/* unlock */ static_unlockTables(conn);
         return summary;
 
         } catch ( SQLException e ) {
-            e.printStackTrace();
-            return 0;
-            //throw new DALException(ex.getMessage());
+            throw new DALException(e.getMessage());
         }
     }
 
     @Override
     public List<IngredientDTO> getReorders() throws DALException {
-        try (Connection connection = createConnection()) {
+        try (Connection conn = static_createConnection()) {
+
+/* lock  */ static_lockTables(conn,"Ingredient");
+
             List<IngredientDTO> ingredientList = new LinkedList<>();
 
-            PreparedStatement statement = connection.prepareStatement("SELECT * FROM Ingredient WHERE reOrder = 1");
+            PreparedStatement statement = conn.prepareStatement("SELECT * FROM Ingredient WHERE reOrder = 1");
             ResultSet res = statement.executeQuery();
 
             while (res.next()) {
@@ -60,19 +58,24 @@ public class IngredientDAO implements I_IngredientDAO {
                 ingredientList.add(ingredient);
 
             }
+
+/* unlock */ static_unlockTables(conn);
+
             return ingredientList;
 
-        } catch ( SQLException ex ) {
-            throw new DALException(ex.getMessage());
+        } catch ( SQLException e ) {
+            throw new DALException(e.getMessage());
         }
     }
 
     @Override
     public List<IngredientDTO> getIngredientsAll() throws DALException {
-        try (Connection connection = createConnection()) {
+        try (Connection conn = static_createConnection()) {
+/* lock  */ static_lockTables(conn,"Ingredient");
+
             List<IngredientDTO> ingredientList = new LinkedList<>();
 
-            Statement statement = connection.createStatement();
+            Statement statement = conn.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from Ingredient");
 
             while (resultSet.next()) {
@@ -85,19 +88,23 @@ public class IngredientDAO implements I_IngredientDAO {
                 ingredientList.add(ingredient);
 
             }
+
+/* unlock */ static_unlockTables(conn);
             return ingredientList;
 
-        } catch ( SQLException ex ) {
-            throw new DALException(ex.getMessage());
+        } catch ( SQLException e ) {
+            throw new DALException(e.getMessage());
         }
     }
-
+// ------------------------------------------------------------------------------
     @Override
     public List<IngredientDTO> getIngredientsActive() throws DALException {
-        try (Connection connection = createConnection()) {
-            List<IngredientDTO> ingredientList = new LinkedList<>();
+        try (Connection conn = static_createConnection()) {
 
-            Statement statement = connection.createStatement();
+/* lock */static_lockTables(conn, "Ingredient");
+
+            List<IngredientDTO> ingredientList = new LinkedList<>();
+            Statement statement = conn.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from Ingredient where active = 1");
 
             while (resultSet.next()) {
@@ -109,19 +116,25 @@ public class IngredientDAO implements I_IngredientDAO {
 
                 ingredientList.add(ingredient);
             }
+
+
+/* unlock */static_unlockTables(conn);
+
             return ingredientList;
 
-        } catch ( SQLException ex ) {
-            throw new DALException(ex.getMessage());
+        } catch ( SQLException e ) {
+            throw new DALException(e.getMessage());
         }
     }
 
     @Override
     public List<IngredientDTO> getIngredientsInActive() throws DALException {
-        try (Connection connection = createConnection()) {
-            List<IngredientDTO> ingredientList = new LinkedList<>();
+        try (Connection conn = static_createConnection()) {
 
-            Statement statement = connection.createStatement();
+/* lock */static_lockTables(conn, "Ingredient");
+
+            List<IngredientDTO> ingredientList = new LinkedList<>();
+            Statement statement = conn.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from Ingredient where active = 0");
 
             while (resultSet.next()) {
@@ -133,18 +146,22 @@ public class IngredientDAO implements I_IngredientDAO {
 
                 ingredientList.add(ingredient);
             }
+/* unlock */static_unlockTables(conn);
             return ingredientList;
 
-        } catch ( SQLException ex ) {
-            throw new DALException(ex.getMessage());
+        } catch ( SQLException e ) {
+            throw new DALException(e.getMessage());
         }
     }
 
     @Override
     public void createIngredient(IngredientDTO ingredient) throws DALException {
-        try (Connection connection = createConnection()) {
+        try (Connection conn = static_createConnection()) {
 
-            PreparedStatement statement = connection.prepareStatement("insert into `Ingredient`(`ingredientId`,`name`,`active`,`reOrder`,`expired`) values (?, ?, ?, ?,?)");
+/* lock */static_lockTables(conn, "Ingredient");
+/* start*/static_startTransAction(conn);
+
+            PreparedStatement statement = conn.prepareStatement("insert into `Ingredient`(`ingredientId`,`name`,`active`,`reOrder`,`expired`) values (?, ?, ?, ?,?)");
             statement.setInt(1, ingredient.getIngredientId());
             statement.setString(2, ingredient.getName());
             statement.setBoolean(3, ingredient.isActive());
@@ -152,41 +169,54 @@ public class IngredientDAO implements I_IngredientDAO {
             statement.setBoolean(5,false);
             statement.execute();
 
+/* commit */static_commitTransAction(conn);
+/* unlock */static_unlockTables(conn);
+
         } catch ( SQLException e ) {
-            e.printStackTrace();
+            throw new DALException(e.getMessage());
         }
 
     }
 
     @Override
     public void updateIngredient(IngredientDTO ingredient) throws DALException {
-        try (Connection connection = createConnection()) {
-            PreparedStatement statement = connection.prepareStatement(
+        try (Connection conn = static_createConnection()) {
+
+/* lock */static_lockTables(conn, "Ingredient");
+/* start*/static_startTransAction(conn);
+
+            PreparedStatement statement = conn.prepareStatement(
                     "update Ingredient set name = ?, active = ?, reOrder =? where ingredientId = ?");
             statement.setString(1, ingredient.getName());
             statement.setBoolean(2, ingredient.isActive());
             statement.setBoolean(3, ingredient.isReOrder());
             statement.setInt(4, ingredient.getIngredientId());
-
             statement.executeUpdate();
-        } catch ( SQLException ex ) {
-            throw new DALException(ex.getMessage());
+
+/* commit */static_commitTransAction(conn);
+/* unlock */static_unlockTables(conn);
+        } catch ( SQLException e ) {
+            throw new DALException(e.getMessage());
         }
 
     }
 
     @Override
-    public void deleteIngredient(int id){
-        try (Connection connection = createConnection()) {
+    public void deleteIngredient(int id) throws DALException{
+        try (Connection conn = static_createConnection()) {
 
-            PreparedStatement statement = connection.prepareStatement("update Ingredient set expired = 1 where ingredientId = ?");
+/* lock */static_lockTables(conn, "Ingredient");
+/* start*/static_startTransAction(conn);
+
+            PreparedStatement statement = conn.prepareStatement("update Ingredient set expired = 1 where ingredientId = ?");
             statement.setInt(1, id);
             statement.executeUpdate();
 
-        } catch ( SQLException e ) {
+/* commit */static_commitTransAction(conn);
+/* unlock */static_unlockTables(conn);
 
-            e.printStackTrace();
-            //throw new DALException(ex.getMessage());
+        } catch ( SQLException e ) {
+            throw new DALException(e.getMessage());
         }
     }
 
@@ -196,32 +226,31 @@ public class IngredientDAO implements I_IngredientDAO {
     }
 
      @Override
-    public IngredientDTO getIngredient(int id){
-         try (Connection connection = createConnection()) {
+    public IngredientDTO getIngredient(int id) throws DALException {
+         try (Connection conn = static_createConnection()) {
 
+/* lock */static_lockTables(conn, "Ingredient");
 
-             PreparedStatement statement = connection.prepareStatement("select * from Ingredient where ingredientId = ?");
+             IngredientDTO ingredient = null;
+
+             PreparedStatement statement = conn.prepareStatement("select * from Ingredient where ingredientId = ?");
              statement.setInt(1, id);
              ResultSet result = statement.executeQuery();
 
              if (result.next()) {
-                 IngredientDTO ingredient = new IngredientDTO();
-
+                 ingredient = new IngredientDTO();
                  ingredient.setIngredientId(result.getInt("ingredientId"));
                  ingredient.setName(result.getString("name"));
                  ingredient.setActive(result.getBoolean("active"));
                  ingredient.setReOrder(result.getBoolean("reOrder"));
                  ingredient.setExpired(result.getBoolean("expired"));
-                 return ingredient;
-             }
-             else{
-                 return null;
              }
 
+/* unlock */static_unlockTables(conn);
 
+            return ingredient;
          } catch ( SQLException e ) {
-             e.printStackTrace();
-             return null;
+             throw new DALException(e.getMessage());
          }
      }
 
@@ -230,13 +259,20 @@ public class IngredientDAO implements I_IngredientDAO {
         return getIngredient(ingredient.getIngredientId());
     }
 
-    public void superDelete(int id){
-        try (Connection connection = createConnection()) {
-            PreparedStatement statement = connection.prepareStatement("DELETE FROM Ingredient WHERE `ingredientId` = ?");
+    public void superDelete(int id) throws DALException{
+        try (Connection conn = static_createConnection()) {
+/* start */static_startTransAction(conn);
+/* lock  */static_lockTables(conn, "Ingredient");
+
+            PreparedStatement statement = conn.prepareStatement("DELETE FROM Ingredient WHERE `ingredientId` = ?");
             statement.setInt(1, id);
             statement.execute();
-        }catch (SQLException e){
-            e.printStackTrace();
+
+/* commit */static_commitTransAction(conn);
+/* unlock */static_unlockTables(conn);
+
+        }catch ( SQLException e ) {
+            throw new DALException(e.getMessage());
         }
     }
 }

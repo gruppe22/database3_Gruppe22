@@ -1,8 +1,6 @@
 package test;
 
-import com.mysql.cj.result.SqlDateValueFactory;
 import dal.dao.Connector;
-import dal.dao.IRecipeDAO;
 import dal.dao.IngredientDAO;
 import dal.dao.RecipeDAO;
 import dal.dto.IngredientDTO;
@@ -13,22 +11,17 @@ import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RecipeDAOTest {
     private Connection createConnection() throws SQLException {
         Connector connector = new Connector();
-        return connector.createConnection();
+        return connector.static_createConnection();
     }
-    private  List<IngredientDTO> getSomeIngredients(){
+    private  List<IngredientDTO> getSomeIngredients() throws Exception{
         IngredientDAO dao = new IngredientDAO();
         List<IngredientDTO> ingre = new LinkedList<>();
         ingre.add(dao.getIngredient(1));
@@ -39,6 +32,7 @@ class RecipeDAOTest {
 
         for(int i = 0; i < ingre.size() ; i++){
             ingre.get(i).setAmount(265);
+            //ingre.get(i).setAmount(265);
         }
         return ingre;
     }
@@ -47,7 +41,7 @@ class RecipeDAOTest {
             assertEquals(exspectedList.get(i).getIngredientId() , ActualList.get(i).getIngredientId() );
         }
     }
-    private RecipeDTO getTestDTO(){
+    private RecipeDTO getTestDTO() throws Exception{
         RecipeDTO dto = new RecipeDTO();
         dto.setAuthorId(1);
         dto.setDescription("do this then that. bub");
@@ -83,10 +77,10 @@ class RecipeDAOTest {
 
     @Test
     void createRecipe() {
-        RecipeDAO dao = new RecipeDAO();
-        RecipeDTO dto = getTestDTO();
-
         try {
+
+            RecipeDAO dao = new RecipeDAO();
+            RecipeDTO dto = getTestDTO();
 
             dao.createRecipe(dto);
             RecipeDTO dto2 = dao.getRecipe(dto.getRecipeId());
@@ -101,9 +95,10 @@ class RecipeDAOTest {
 
     @Test
     void getRecipe() {
-        RecipeDAO dao = new RecipeDAO();
-        RecipeDTO dto = getTestDTO();
         try {
+            RecipeDAO dao = new RecipeDAO();
+            RecipeDTO dto = getTestDTO();
+
             dao.createRecipe(dto);
             RecipeDTO newdto = dao.getRecipe(dto.getRecipeId());
             assertRecipes( newdto , dto);
@@ -144,10 +139,11 @@ class RecipeDAOTest {
 
     @Test
     void updateRecipe() {
-        RecipeDAO dao = new RecipeDAO();
-        RecipeDTO dto = getTestDTO();
-
         try {
+            RecipeDAO dao = new RecipeDAO();
+            RecipeDTO dto = getTestDTO();
+
+
             dto.setName("version 1");
             dao.createRecipe(dto);
             dto.setName("version 2");
@@ -179,9 +175,10 @@ class RecipeDAOTest {
 
     @Test
     void deleteRecipe() {
-        RecipeDAO dao = new RecipeDAO();
-        RecipeDTO dto = getTestDTO();
         try {
+            RecipeDAO dao = new RecipeDAO();
+            RecipeDTO dto = getTestDTO();
+
             dao.createRecipe(dto);
             dao.deleteRecipe(dto);
             List<RecipeDTO> list = dao.getRecipeListSpecifik(dto.getRecipeId());
@@ -203,10 +200,10 @@ class RecipeDAOTest {
 
     @Test
     void getRecipeListSpecifik() {
-        RecipeDAO dao = new RecipeDAO();
-        RecipeDTO dto = getTestDTO();
-
         try {
+            RecipeDAO dao = new RecipeDAO();
+            RecipeDTO dto = getTestDTO();
+
             dto.setName("version 1");
             dao.createRecipe(dto);
             dto.setName("version 2");

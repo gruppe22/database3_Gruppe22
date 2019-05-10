@@ -25,16 +25,16 @@ class IngredientDAOTest {
 
     @Test
     void getReorders() {
-        IngredientDAO dao = new IngredientDAO();
-        IngredientDTO ingre = new IngredientDTO();
-
-        ingre.setIngredientId(777);     ingre.setExpired(true);
-        ingre.setActive(true);          ingre.setReOrder(true);
-        ingre.setName("Allas store bøffer");
-
-        dao.superDelete(ingre.getIngredientId());
-
         try {
+            IngredientDAO dao = new IngredientDAO();
+            IngredientDTO ingre = new IngredientDTO();
+
+            ingre.setIngredientId(777);     ingre.setExpired(true);
+            ingre.setActive(true);          ingre.setReOrder(true);
+            ingre.setName("Allas store bøffer");
+
+            dao.superDelete(ingre.getIngredientId());
+
             dao.createIngredient(ingre);
             List<IngredientDTO> reOrders = dao.getReorders();
             boolean anyTrue = false;

@@ -5,20 +5,19 @@ import dal.dto.MaterialDTO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
+
+import static dal.dao.Connector.*;
 
 public class MaterialDAO implements IMaterialDAO{
-
-    private Connection createConnection() throws SQLException {
-        Connector connector = new Connector();
-        return connector.createConnection();
-    }
-
-
         @Override
         public void createMaterial(MaterialDTO material) throws DALException {
-            try (Connection connection = createConnection()) {
-                PreparedStatement statement = connection.prepareStatement("insert into Materials values (?, ?, ?, ?, ?, ?)");
+            try (Connection conn = static_createConnection()) {
+
+/* lock  */ static_lockTables(conn,"Materials");
+/* start */ static_startTransAction(conn);
+
+
+                PreparedStatement statement = conn.prepareStatement("insert into Materials values (?, ?, ?, ?, ?, ?)");
                 statement.setInt(1, material.getBatchId());
                 statement.setString(2, material.getName());
                 statement.setInt(3,material.getIngredientId());
@@ -26,33 +25,43 @@ public class MaterialDAO implements IMaterialDAO{
                 statement.setString(5, material.getSupplier());
                 statement.setBoolean(6,material.isExpired());
                 statement.execute();
-            } catch (SQLException ex) {
-                throw new DALException(ex.getMessage());
+
+/* commit */ static_commitTransAction(conn);
+/* unlock */ static_unlockTables(conn);
+
+
+            } catch (SQLException e) {
+                throw new DALException(e.getMessage());
             }
         }
 
         @Override
         public MaterialDTO getMaterial (int batchId) throws DALException {
-            try (Connection c = createConnection()){
-                MaterialDTO materialnotfound = new MaterialDTO(0,"NOT FOUND",0,0,"NOT FOUND",true);
+            try (Connection conn = static_createConnection()) {
+
+/* lock  */static_lockTables(conn, "Materials");
 
 
-                PreparedStatement statement = c.prepareStatement("select * from Materials where batchId = ?");
+                MaterialDTO material = null;
+                PreparedStatement statement = conn.prepareStatement("select * from Materials where batchId = ?");
                 statement.setInt(1, batchId);
                 ResultSet result = statement.executeQuery();
 
                 if (result.next()) {
-                    MaterialDTO material = new MaterialDTO(
+                    material = new MaterialDTO(
                             result.getInt("batchId"),
                             result.getString("name"),
                             result.getInt("ingredientId"),
                             result.getInt("quantity"),
                             result.getString("supplier"),
                             result.getBoolean("expired"));
-                            return material;
                 }
 
-                    return materialnotfound;
+
+/* unlock */static_unlockTables(conn);
+
+                return material;
+
             } catch (SQLException e) {
                 throw new DALException(e.getMessage());
             }
@@ -60,10 +69,12 @@ public class MaterialDAO implements IMaterialDAO{
 
         @Override
         public List<MaterialDTO> getMaterialList() throws DALException {
-            try (Connection connection = createConnection()) {
-                List<MaterialDTO> materialList = new ArrayList<>();
+            try (Connection conn = static_createConnection()) {
 
-                Statement statement = connection.createStatement();
+/* lock  */static_lockTables(conn, "Materials");
+
+                List<MaterialDTO> materialList = new ArrayList<>();
+                Statement statement = conn.createStatement();
                 ResultSet resultSet = statement.executeQuery("select * from Materials where expired = 0");
 
                 while (resultSet.next()) {
@@ -77,17 +88,24 @@ public class MaterialDAO implements IMaterialDAO{
 
                     materialList.add(material);
                 }
+
+/* unlock */static_unlockTables(conn);
+
                 return materialList;
 
-            } catch (SQLException ex) {
-                throw new DALException(ex.getMessage());
+            } catch (SQLException e) {
+                throw new DALException(e.getMessage());
             }
         }
 
         @Override
         public void updateMaterial(MaterialDTO material) throws DALException {
-            try (Connection connection = createConnection()) {
-                PreparedStatement statement = connection.prepareStatement(
+            try (Connection conn = static_createConnection()) {
+
+/* lock  */ static_lockTables(conn,"Materials");
+/* start */ static_startTransAction(conn);
+
+                PreparedStatement statement = conn.prepareStatement(
                         "update Materials set batchId = ?, name = ?, ingredientId = ?, quantity = ?, supplier = ?, expired = ? where batchId = ?");
                 statement.setInt(1, material.getBatchId());
                 statement.setString(2, material.getName());
@@ -97,31 +115,51 @@ public class MaterialDAO implements IMaterialDAO{
                 statement.setBoolean(6,material.isExpired());
                 statement.setInt(7,material.getBatchId());
                 statement.executeUpdate();
-            } catch (SQLException ex) {
-                throw new DALException(ex.getMessage());
+
+/* commit */ static_commitTransAction(conn);
+/* unlock */ static_unlockTables(conn);
+
+            } catch (SQLException e) {
+                throw new DALException(e.getMessage());
             }
         }
 
         @Override
         public void deleteMaterial(MaterialDTO material) throws DALException {
-            try (Connection connection = createConnection()) {
-                PreparedStatement statement = connection.prepareStatement(
+            try (Connection conn = static_createConnection()) {
+
+/* lock  */ static_lockTables(conn,"Materials");
+/* start */ static_startTransAction(conn);
+
+                PreparedStatement statement = conn.prepareStatement(
                         "update Materials set expired = ? where batchId = ?");
                 statement.setBoolean(1, material.isExpired());
                 statement.setInt(2,material.getBatchId());
                 statement.executeUpdate();
-            } catch (SQLException ex) {
-                throw new DALException(ex.getMessage());
+
+/* commit */ static_commitTransAction(conn);
+/* unlock */ static_unlockTables(conn);
+
+            } catch (SQLException e) {
+                throw new DALException(e.getMessage());
             }
         }
 
         public void SUPERdeleteMaterial(int batchId) throws DALException {
-            try (Connection connection = createConnection()) {
-                PreparedStatement statement = connection.prepareStatement("delete from Materials where batchId = ?");
+            try (Connection conn = static_createConnection()) {
+
+/* lock  */ static_lockTables(conn,"Materials");
+/* start */ static_startTransAction(conn);
+
+                PreparedStatement statement = conn.prepareStatement("delete from Materials where batchId = ?");
                 statement.setInt(1, batchId);
                 statement.execute();
-            } catch (SQLException ex) {
-                throw new DALException(ex.getMessage());
+
+/* commit */ static_commitTransAction(conn);
+/* unlock */ static_unlockTables(conn);
+
+            } catch (SQLException e) {
+                throw new DALException(e.getMessage());
             }
         }
     }

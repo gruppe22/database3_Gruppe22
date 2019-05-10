@@ -6,12 +6,10 @@ import dal.dto.RecipeDTO;
 import java.sql.*;
 import java.util.*;
 
+import static dal.dao.Connector.*;
+
 public class RecipeDAO implements IRecipeDAO {
-    private Connection createConnection() throws SQLException {
-        Connector connector = new Connector();
-        return connector.createConnection();
-    }
-    private Timestamp getThisDate()throws Exception{
+    private Timestamp getThisDate(){
         // MySQL needs a date in a specifik Format, this was the method that worked to achive the right format and a SQL date.
         java.sql.Timestamp dateTime = new java.sql.Timestamp(System.currentTimeMillis());
         // Date dateFormated =  date.valueOf(date.toString());
@@ -53,9 +51,12 @@ public class RecipeDAO implements IRecipeDAO {
 
     @Override
     public void createRecipe(RecipeDTO recipe) throws DALException {
-        try (Connection connection = createConnection()) {
+        try (Connection conn = static_createConnection()) {
 
-            PreparedStatement statement = connection.prepareStatement("insert into `Recipe` (`recipeId`, `endDate`, `name`, `authorId`, `description`, `quantity`) values (?,'9999-12-31 23:59:59',?,?,?,?)");
+/* lock  */ static_lockTables(conn,"Recipe","relIngredientRecipe","Ingredient");
+/* start */ static_startTransAction(conn);
+
+            PreparedStatement statement = conn.prepareStatement("insert into `Recipe` (`recipeId`, `endDate`, `name`, `authorId`, `description`, `quantity`) values (?,'9999-12-31 23:59:59',?,?,?,?)");
             statement.setInt(1, recipe.getRecipeId());
             statement.setString(2, recipe.getName());
             statement.setInt(3, recipe.getAuthorId());
@@ -66,7 +67,7 @@ public class RecipeDAO implements IRecipeDAO {
             // INGREDIENTS PR RECIPE!
             for(int i = 0; i < recipe.getIngredients().size() ; i++){
                 //insert into `relIngredientRecipe` (`ingredientId`,`amount`, `recipeId`, `endDate`)values(1,250,3,'2018-09-29 12:24:13');
-                PreparedStatement ingreStatement = connection.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount` ,`recipeId`, `endDate`) values (?,?,?,'9999-12-31 23:59:59')");
+                PreparedStatement ingreStatement = conn.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount` ,`recipeId`, `endDate`) values (?,?,?,'9999-12-31 23:59:59')");
                 int ingreId  = recipe.getIngredients().get(i).getIngredientId() ;
                 int recipeId = recipe.getRecipeId() ;
                 ingreStatement.setInt(1, ingreId );
@@ -75,17 +76,22 @@ public class RecipeDAO implements IRecipeDAO {
                 ingreStatement.execute();
             }
 
-        } catch (SQLException ex) {
-            throw new DALException(ex.getMessage());
+/* commit */ static_commitTransAction(conn);
+/* unlock */ static_unlockTables(conn);
+
+        } catch (SQLException e) {
+            throw new DALException(e.getMessage());
         }
     }
     @Override
     public RecipeDTO getRecipe(int recipeId) throws DALException {
-        try (Connection connection = createConnection()){
+        try (Connection conn = static_createConnection()){
+
+/* lock  */ static_lockTables(conn,"Recipe","relIngredientRecipe","Ingredient");
 
             RecipeDTO recipe = new RecipeDTO();
 
-            PreparedStatement statement = connection.prepareStatement("select * from Recipe where recipeId = ?");
+            PreparedStatement statement = conn.prepareStatement("select * from Recipe where recipeId = ?");
             statement.setInt(1, recipeId);
             ResultSet result = statement.executeQuery();
 
@@ -98,7 +104,10 @@ public class RecipeDAO implements IRecipeDAO {
                 recipe.setQuantity(result.getInt("quantity"));
             }
             // Now all the Ingredients..
-            recipe.setIngredients(getIngredsRelationalTable(recipe, connection));
+            recipe.setIngredients(getIngredsRelationalTable(recipe, conn));
+
+
+/* unlock */ static_unlockTables(conn);
 
             return recipe;
         } catch (SQLException e) {
@@ -107,12 +116,12 @@ public class RecipeDAO implements IRecipeDAO {
     }
     @Override
     public List<RecipeDTO> getRecipeList() throws DALException {
-        try (Connection connection = createConnection()) {
+        try (Connection conn = static_createConnection()) {
+/* lock  */ static_lockTables(conn,"Recipe","relIngredientRecipe","Ingredient");
 
             List<RecipeDTO> recipeList = new LinkedList<>();
-            Timestamp date = getThisDate();
 
-            PreparedStatement statement = connection.prepareStatement("select * from `Recipe` where `endDate`='9999-12-31 23:59:59'" );
+            PreparedStatement statement = conn.prepareStatement("select * from `Recipe` where `endDate`='9999-12-31 23:59:59'" );
             ResultSet res = statement.executeQuery();
 
             // for Each row gotten, create DTO , and insert all ingredientDTOs for that one
@@ -128,7 +137,7 @@ public class RecipeDAO implements IRecipeDAO {
                 recipeList.add(recipe);
             }
 
-            PreparedStatement ingStatement = connection.prepareStatement("SELECT * FROM (SELECT * from `relIngredientRecipe` where `endDate`='9999-12-31 23:59:59') t1  JOIN `Ingredient` t2 ON t1.`ingredientId` = t2.`ingredientId`; \n" );
+            PreparedStatement ingStatement = conn.prepareStatement("SELECT * FROM (SELECT * from `relIngredientRecipe` where `endDate`='9999-12-31 23:59:59') t1  JOIN `Ingredient` t2 ON t1.`ingredientId` = t2.`ingredientId`; \n" );
             ResultSet ingRes = ingStatement.executeQuery();
             while (ingRes.next()) {
                 int ingId = ingRes.getInt("recipeId");
@@ -143,21 +152,25 @@ public class RecipeDAO implements IRecipeDAO {
 
                 recipeList.get(ingId).addIngredient(ingDto);
             }
+
+/* unlock */ static_unlockTables(conn);
             return recipeList;
 
-        } catch (Exception e) {
-
+        } catch (SQLException e) {
             throw new DALException(e.getMessage());
 
         }
     }
     @Override
-    public List<RecipeDTO> getRecipeListSpecifik(int id){
-        try (Connection connection = createConnection()) {
+    public List<RecipeDTO> getRecipeListSpecifik(int id)throws DALException {
+        try (Connection conn = static_createConnection()) {
+/* lock  */ static_lockTables(conn,"Recipe","relIngredientRecipe","Ingredient");
+
+
 
             List<RecipeDTO> recipeList = new LinkedList<>();
             // STEP ONE. get the recipees in question and put them Into a List
-            PreparedStatement statement = connection.prepareStatement("select * from `Recipe` where `recipeId`= ?" );
+            PreparedStatement statement = conn.prepareStatement("select * from `Recipe` where `recipeId`= ?" );
             statement.setInt(1,id);
             ResultSet res = statement.executeQuery();
 
@@ -173,7 +186,7 @@ public class RecipeDAO implements IRecipeDAO {
             }
 
             //STEP TWO gettting a table Where Ingredients are lined up with Coresponding Recipees.
-            PreparedStatement ingStatement = connection.prepareStatement("SELECT * FROM `Ingredient` t1 INNER JOIN (SELECT * from `relIngredientRecipe` where `recipeId` = 6)  t2 ON t1.`ingredientId` = t2.`ingredientId`" );
+            PreparedStatement ingStatement = conn.prepareStatement("SELECT * FROM `Ingredient` t1 INNER JOIN (SELECT * from `relIngredientRecipe` where `recipeId` = 6)  t2 ON t1.`ingredientId` = t2.`ingredientId`" );
             ResultSet ingRes = ingStatement.executeQuery();
 
             while (ingRes.next()) { // fejlen kommer af at jeg tager iden fra SQL recipy iden. og bruger den som loop index.
@@ -189,36 +202,39 @@ public class RecipeDAO implements IRecipeDAO {
 
                 getDtoFromList(ingId, ingRes.getTimestamp("endDate") , recipeList).addIngredient(ingDto);
             }
+/* unlock */static_unlockTables(conn);
             return recipeList;
 
-        } catch (Exception e) {
-
-            e.printStackTrace();
-            return null;
+        } catch (SQLException e) {
+            throw new DALException(e.getMessage());
         }
     }
     @Override
     public void updateRecipe(RecipeDTO recipe) throws DALException {
-        try(Connection connection = createConnection()) {
+        try(Connection conn = static_createConnection()) {
+
+/* lock  */ static_lockTables(conn,"Recipe","relIngredientRecipe","Ingredient");
+/* start */ static_startTransAction(conn);
+
             RecipeDAO dao = new RecipeDAO();
-            List<IngredientDTO> oldIngredients = getIngredsRelationalTable(recipe, connection);
+            List<IngredientDTO> oldIngredients = getIngredsRelationalTable(recipe, conn);
             Timestamp today = getThisDate();
 
             // FIRST deleting the Foreign keys, to be able to change primary key of Recipees.
-            PreparedStatement statement = connection.prepareStatement("delete FROM `relIngredientRecipe` where `recipeId` = ? AND `endDate`='9999-12-31 23:59:59'");
+            PreparedStatement statement = conn.prepareStatement("delete FROM `relIngredientRecipe` where `recipeId` = ? AND `endDate`='9999-12-31 23:59:59'");
             statement.setInt(1, recipe.getRecipeId());
             statement.executeUpdate();
 
 
             // SECOND - changing primary key of the Recipe. and setting date = today
-            statement = connection.prepareStatement("UPDATE `Recipe` SET `endDate`=? WHERE `recipeId`=? AND `endDate`='9999-12-31 23:59:59' ");
+            statement = conn.prepareStatement("UPDATE `Recipe` SET `endDate`=? WHERE `recipeId`=? AND `endDate`='9999-12-31 23:59:59' ");
             statement.setTimestamp(1, today);
             statement.setInt(2, recipe.getRecipeId());
             statement.executeUpdate();
 
             // THIRD re-enabeling the ingredients for the old recipe. and setting the date to TODAY
             for(int i = 0 ; i < oldIngredients.size(); i++){
-                statement = connection.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount`, `recipeId`, `endDate`)values(?,?,?,?);");
+                statement = conn.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount`, `recipeId`, `endDate`)values(?,?,?,?);");
                 statement.setInt(1 , oldIngredients.get(i).getIngredientId()    );
                 statement.setInt(2 , oldIngredients.get(i).getAmount()          );
                 statement.setInt(3 , recipe.getRecipeId()                       );
@@ -226,59 +242,80 @@ public class RecipeDAO implements IRecipeDAO {
                 statement.executeUpdate();
             }
 
+/* commit */static_commitTransAction(conn);
+/* unlock */static_unlockTables(conn);
+
             // FOURTH Creating a new Version of the Same Recipe.
             dao.createRecipe(recipe);
 
-        } catch (Exception ex) {
-            throw new DALException(ex.getMessage());
+
+
+        } catch (Exception e) {
+            throw new DALException(e.getMessage());
         }
     }
     @Override
     public void deleteRecipe(RecipeDTO recipe) throws DALException {
-        try(Connection connection = createConnection()) {
+        try(Connection conn = static_createConnection()) {
+
+/* lock  */ static_lockTables(conn,"Recipe","relIngredientRecipe","Ingredient");
+/* start */ static_startTransAction(conn);
+
             RecipeDAO dao = new RecipeDAO();
-            List<IngredientDTO> oldIngredients = getIngredsRelationalTable(recipe, connection);
+            List<IngredientDTO> oldIngredients = getIngredsRelationalTable(recipe, conn);
             Timestamp today = getThisDate();
 
             // FIRST deleting the Foreign keys, to be able to change primary key of Recipees.
-            PreparedStatement statement = connection.prepareStatement("delete FROM `relIngredientRecipe` where `recipeId` = ? AND `endDate`='9999-12-31 23:59:59'");
+            PreparedStatement statement = conn.prepareStatement("delete FROM `relIngredientRecipe` where `recipeId` = ? AND `endDate`='9999-12-31 23:59:59'");
             statement.setInt(1, recipe.getRecipeId());
             statement.executeUpdate();
 
 
             // SECOND - changing primary key of the Recipe. and setting date = today
-            statement = connection.prepareStatement("UPDATE `Recipe` SET `endDate`=? WHERE `recipeId`=? AND `endDate`='9999-12-31 23:59:59' ");
+            statement = conn.prepareStatement("UPDATE `Recipe` SET `endDate`=? WHERE `recipeId`=? AND `endDate`='9999-12-31 23:59:59' ");
             statement.setTimestamp(1, today);
             statement.setInt(2, recipe.getRecipeId());
             statement.executeUpdate();
 
             // THIRD re enabeling the ingredients for the old recipe. and setting the date to TODAY
             for (int i = 0; i < oldIngredients.size(); i++) {
-                statement = connection.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount`, `recipeId`, `endDate`)values(?,?,?,?);");
+                statement = conn.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount`, `recipeId`, `endDate`)values(?,?,?,?);");
                 statement.setInt(1, oldIngredients.get(i).getIngredientId());
                 statement.setInt(2, oldIngredients.get(i).getAmount());
                 statement.setInt(3, recipe.getRecipeId());
                 statement.setTimestamp(4, today);
                 statement.executeUpdate();
             }
-        }catch (Exception e){
-            e.printStackTrace();
+
+/* commit */ static_commitTransAction(conn);
+/* unlock */ static_unlockTables(conn);
+
+        }catch (SQLException e){
+            throw new DALException(e.getMessage());
         }
 
     }
 
     public void superDelete(int id) throws DALException{
-        try (Connection connection = createConnection()) {
+        try (Connection conn = static_createConnection()) {
 
-            PreparedStatement statement = connection.prepareStatement("delete FROM relIngredientRecipe where `recipeId` = ?");
+/* lock  */ static_lockTables(conn,"Recipe","relIngredientRecipe","Ingredient");
+/* start */ static_startTransAction(conn);
+
+
+            PreparedStatement statement = conn.prepareStatement("delete FROM relIngredientRecipe where `recipeId` = ?");
             statement.setInt(1, id);
             statement.execute();
 
-            statement = connection.prepareStatement("delete from `Recipe` where `recipeId` = ?");
+            statement = conn.prepareStatement("delete from `Recipe` where `recipeId` = ?");
             statement.setInt(1, id);
             statement.execute();
-        } catch (SQLException ex) {
-            throw new DALException(ex.getMessage());
+
+/* commit */static_commitTransAction(conn);
+/* unlock */ static_unlockTables(conn);
+
+        } catch (SQLException e) {
+            throw new DALException(e.getMessage());
         }
     }
     public void superDelete(RecipeDTO dto) throws DALException{

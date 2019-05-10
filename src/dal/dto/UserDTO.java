@@ -9,6 +9,7 @@ public class UserDTO {
     private String userName;
     private String ini;
     private boolean expired;
+    private List<String> roles;
 
     public boolean isExpired() {
         return expired;
@@ -16,8 +17,6 @@ public class UserDTO {
     public void setExpired(boolean expired) {
         this.expired = expired;
     }
-
-    private List<String> roles;
 
     public UserDTO(int userid, String userName, String ini, List<String> roles) {
         this.userId = userid;

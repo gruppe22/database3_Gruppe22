@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 public class main {
     public static void main(String[] args) {
         Connector sysConnector = new Connector();
-        try(Connection connection = sysConnector.createConnection()) {
+        try(Connection connection = sysConnector.static_createConnection()) {
             // ROLES GET
             PreparedStatement statement = connection.prepareStatement("Select * From `Roles`");
             ResultSet res = statement.executeQuery();
