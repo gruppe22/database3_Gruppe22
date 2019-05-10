@@ -16,11 +16,6 @@ class MaterialDAOTest {
     MaterialDTO databaseTestMaterialOne;
     MaterialDTO databaseTestMaterialTwo;
 
-
-
-
-
-
     @Test
     void createMaterial()throws IMaterialDAO.DALException{
 
@@ -37,7 +32,6 @@ class MaterialDAOTest {
             assertEquals(objectTestMaterial.isExpired(), databaseTestMaterialOne.isExpired());
             MDAO.SUPERdeleteMaterial(255);
     }
-
 
     @Test
     void getMaterial()throws IMaterialDAO.DALException {
@@ -126,9 +120,5 @@ class MaterialDAOTest {
         // Rinse the database from the test-generated filt
         MDAO.SUPERdeleteMaterial(255);
     }
-
-
-
-
 
 }

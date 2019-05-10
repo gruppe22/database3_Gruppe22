@@ -36,6 +36,10 @@ class RecipeDAOTest {
         ingre.add(dao.getIngredient(3));
         ingre.add(dao.getIngredient(4));
         ingre.add(dao.getIngredient(5));
+
+        for(int i = 0; i < ingre.size() ; i++){
+            ingre.get(i).setAmount(265);
+        }
         return ingre;
     }
     private void assertIngredientsLists(List<IngredientDTO> exspectedList, List<IngredientDTO> ActualList ){
@@ -63,6 +67,7 @@ class RecipeDAOTest {
         assertIngredientsLists( actual.getIngredients() , exspected.getIngredients()  );
 
     }
+
     @AfterEach
     void tearDown() {
         try (Connection connection = createConnection()) {
@@ -74,6 +79,7 @@ class RecipeDAOTest {
             e.printStackTrace();
         }
     }
+
 
     @Test
     void createRecipe() {

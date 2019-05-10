@@ -18,8 +18,6 @@ public class MaterialDAO implements IMaterialDAO{
         @Override
         public void createMaterial(MaterialDTO material) throws DALException {
             try (Connection connection = createConnection()) {
-
-
                 PreparedStatement statement = connection.prepareStatement("insert into Materials values (?, ?, ?, ?, ?, ?)");
                 statement.setInt(1, material.getBatchId());
                 statement.setString(2, material.getName());
@@ -28,7 +26,6 @@ public class MaterialDAO implements IMaterialDAO{
                 statement.setString(5, material.getSupplier());
                 statement.setBoolean(6,material.isExpired());
                 statement.execute();
-
             } catch (SQLException ex) {
                 throw new DALException(ex.getMessage());
             }
@@ -117,8 +114,6 @@ public class MaterialDAO implements IMaterialDAO{
                 throw new DALException(ex.getMessage());
             }
         }
-
-
 
         public void SUPERdeleteMaterial(int batchId) throws DALException {
             try (Connection connection = createConnection()) {

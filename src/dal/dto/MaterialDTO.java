@@ -9,6 +9,15 @@ public class MaterialDTO {
     private String supplier;
     private boolean expired;
 
+    public int getReservedAmount() {
+        return reservedAmount;
+    }
+    public void setReservedAmount(int reservedAmount) {
+        this.reservedAmount = reservedAmount;
+    }
+
+    private int reservedAmount = 0;
+
 
     public MaterialDTO (int batchId, String name, int ingredientId, int quantity, String supplier, boolean expired){
         this.batchId = batchId;

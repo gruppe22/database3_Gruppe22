@@ -13,11 +13,8 @@ public class RecipeDAO implements IRecipeDAO {
     }
     private Timestamp getThisDate()throws Exception{
         // MySQL needs a date in a specifik Format, this was the method that worked to achive the right format and a SQL date.
-        // Date date = new Date(System.currentTimeMillis());
-        //SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
         java.sql.Timestamp dateTime = new java.sql.Timestamp(System.currentTimeMillis());
-       // Date dateFormated =  date.valueOf(date.toString());
+        // Date dateFormated =  date.valueOf(date.toString());
         return dateTime;
     }
     private List<IngredientDTO> getIngredsRelationalTable(RecipeDTO recipe, Connection connection) throws SQLException {
@@ -40,6 +37,7 @@ public class RecipeDAO implements IRecipeDAO {
             ing.setActive(res.getBoolean("active"));
             ing.setReOrder(res.getBoolean("reOrder"));
             ing.setExpired(res.getBoolean("expired"));
+            ing.setAmount(res.getInt("amount"));
             ingres.add(ing);
         }
         return ingres;
@@ -67,14 +65,14 @@ public class RecipeDAO implements IRecipeDAO {
 
             // INGREDIENTS PR RECIPE!
             for(int i = 0; i < recipe.getIngredients().size() ; i++){
-
-                PreparedStatement ingreStatement = connection.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`, `recipeId`, `endDate`) values (?,?,'9999-12-31 23:59:59')");
+                //insert into `relIngredientRecipe` (`ingredientId`,`amount`, `recipeId`, `endDate`)values(1,250,3,'2018-09-29 12:24:13');
+                PreparedStatement ingreStatement = connection.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount` ,`recipeId`, `endDate`) values (?,?,?,'9999-12-31 23:59:59')");
                 int ingreId  = recipe.getIngredients().get(i).getIngredientId() ;
                 int recipeId = recipe.getRecipeId() ;
                 ingreStatement.setInt(1, ingreId );
-                ingreStatement.setInt(2, recipeId );
+                ingreStatement.setInt(2, recipe.getIngredients().get(i).getAmount() );
+                ingreStatement.setInt(3, recipeId );
                 ingreStatement.execute();
-
             }
 
         } catch (SQLException ex) {
@@ -100,22 +98,6 @@ public class RecipeDAO implements IRecipeDAO {
                 recipe.setQuantity(result.getInt("quantity"));
             }
             // Now all the Ingredients..
-
-         /*   PreparedStatement ingStatement = c.prepareStatement("SELECT * FROM `relIngredientRecipe` where `recipeId` = ? AND `endDate` = '9999-12-31 23:59:59'");
-            ingStatement.setInt(1, recipeId);
-            ResultSet res = ingStatement.executeQuery();
-
-            List<IngredientDTO> ingres = new LinkedList<>();
-            while(result.next()){
-                IngredientDTO  ing = new IngredientDTO();
-                ing.setIngredientId(res.getInt("ingredientId"));
-                ing.setName(res.getString("name"));
-                ing.setActive(res.getBoolean("active"));
-                ing.setReOrder(res.getBoolean("reOrder"));
-                ing.setExpired(res.getBoolean("expired"));
-            }*/
-
-
             recipe.setIngredients(getIngredsRelationalTable(recipe, connection));
 
             return recipe;
@@ -157,6 +139,7 @@ public class RecipeDAO implements IRecipeDAO {
                 ingDto.setActive(ingRes.getBoolean("active"));
                 ingDto.setReOrder(ingRes.getBoolean("reOrder"));
                 ingDto.setName(ingRes.getString("name"));
+                ingDto.setAmount(ingRes.getInt("amount"));
 
                 recipeList.get(ingId).addIngredient(ingDto);
             }
@@ -195,12 +178,14 @@ public class RecipeDAO implements IRecipeDAO {
 
             while (ingRes.next()) { // fejlen kommer af at jeg tager iden fra SQL recipy iden. og bruger den som loop index.
                 int ingId = ingRes.getInt("recipeId");
+
                 IngredientDTO ingDto = new IngredientDTO();
                 ingDto.setIngredientId(ingRes.getInt("ingredientId"));
                 ingDto.setName(ingRes.getString("expired"));
                 ingDto.setActive(ingRes.getBoolean("active"));
                 ingDto.setReOrder(ingRes.getBoolean("reOrder"));
                 ingDto.setName(ingRes.getString("name"));
+                ingDto.setAmount(ingRes.getInt("amount"));
 
                 getDtoFromList(ingId, ingRes.getTimestamp("endDate") , recipeList).addIngredient(ingDto);
             }
@@ -231,12 +216,13 @@ public class RecipeDAO implements IRecipeDAO {
             statement.setInt(2, recipe.getRecipeId());
             statement.executeUpdate();
 
-            // THIRD re enabeling the ingredients for the old recipe. and setting the date to TODAY
+            // THIRD re-enabeling the ingredients for the old recipe. and setting the date to TODAY
             for(int i = 0 ; i < oldIngredients.size(); i++){
-                statement = connection.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`, `recipeId`, `endDate`)values(?,?,?);");
+                statement = connection.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount`, `recipeId`, `endDate`)values(?,?,?,?);");
                 statement.setInt(1 , oldIngredients.get(i).getIngredientId()    );
-                statement.setInt(2 , recipe.getRecipeId()                       );
-                statement.setTimestamp(3 , today                                     );
+                statement.setInt(2 , oldIngredients.get(i).getAmount()          );
+                statement.setInt(3 , recipe.getRecipeId()                       );
+                statement.setTimestamp(4 , today                                );
                 statement.executeUpdate();
             }
 
@@ -248,17 +234,37 @@ public class RecipeDAO implements IRecipeDAO {
         }
     }
     @Override
-    public void deleteRecipe(int recipeId) throws DALException {
-        try (Connection connection = createConnection()) {
-            PreparedStatement statement = connection.prepareStatement("delete from Recipe where recipeId = ?");
-            statement.setInt(1, recipeId);
-            statement.execute();
-        } catch (SQLException ex) {
-            throw new DALException(ex.getMessage());
+    public void deleteRecipe(RecipeDTO recipe) throws DALException {
+        try(Connection connection = createConnection()) {
+            RecipeDAO dao = new RecipeDAO();
+            List<IngredientDTO> oldIngredients = getIngredsRelationalTable(recipe, connection);
+            Timestamp today = getThisDate();
+
+            // FIRST deleting the Foreign keys, to be able to change primary key of Recipees.
+            PreparedStatement statement = connection.prepareStatement("delete FROM `relIngredientRecipe` where `recipeId` = ? AND `endDate`='9999-12-31 23:59:59'");
+            statement.setInt(1, recipe.getRecipeId());
+            statement.executeUpdate();
+
+
+            // SECOND - changing primary key of the Recipe. and setting date = today
+            statement = connection.prepareStatement("UPDATE `Recipe` SET `endDate`=? WHERE `recipeId`=? AND `endDate`='9999-12-31 23:59:59' ");
+            statement.setTimestamp(1, today);
+            statement.setInt(2, recipe.getRecipeId());
+            statement.executeUpdate();
+
+            // THIRD re enabeling the ingredients for the old recipe. and setting the date to TODAY
+            for (int i = 0; i < oldIngredients.size(); i++) {
+                statement = connection.prepareStatement("insert into `relIngredientRecipe` (`ingredientId`,`amount`, `recipeId`, `endDate`)values(?,?,?,?);");
+                statement.setInt(1, oldIngredients.get(i).getIngredientId());
+                statement.setInt(2, oldIngredients.get(i).getAmount());
+                statement.setInt(3, recipe.getRecipeId());
+                statement.setTimestamp(4, today);
+                statement.executeUpdate();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
-    }
-    @Override
-    public void deleteRecipe(RecipeDTO recipe) throws DALException{
+
     }
 
     public void superDelete(int id) throws DALException{

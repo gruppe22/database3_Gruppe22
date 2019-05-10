@@ -1,6 +1,10 @@
 package dal.dto;
 
 import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ProductionDTO {
 
@@ -8,8 +12,17 @@ public class ProductionDTO {
     private int quantity;
     private String status;
     private int recipeId;
-    private Date recipeEndDate;
+    private Timestamp recipeEndDate;
     private int produktionsLeaderID;
+
+    public List<MaterialDTO> getMateials() {
+        return mateials;
+    }
+    public void setMateials(List<MaterialDTO> mateials) {
+        this.mateials = mateials;
+    }
+
+    private List<MaterialDTO> mateials = new LinkedList<>();
 
     public int getProductionId() {
         return productionId;
@@ -39,10 +52,10 @@ public class ProductionDTO {
         this.recipeId = recipeId;
     }
 
-    public Date getRecipeEndDate() {
+    public Timestamp getRecipeEndDate() {
         return recipeEndDate;
     }
-    public void setRecipeEndDate(Date recipeEndDate) {
+    public void setRecipeEndDate(Timestamp recipeEndDate) {
         this.recipeEndDate = recipeEndDate;
     }
 

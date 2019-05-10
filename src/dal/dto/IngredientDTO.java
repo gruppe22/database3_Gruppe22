@@ -6,6 +6,14 @@ public class IngredientDTO {
       boolean active;
       boolean reOrder;
       boolean expired;
+      int amount;
+
+    public int getAmount() {
+        return amount;
+    }
+    public void setAmount(int ammount) {
+        this.amount = ammount;
+    }
 
     public int getIngredientId() {
         return ingredientId;

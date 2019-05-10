@@ -12,7 +12,6 @@ public interface IRecipeDAO {
     void createRecipe(RecipeDTO recipe) throws IRecipeDAO.DALException;
     void updateRecipe(RecipeDTO recipe) throws IRecipeDAO.DALException;
     void deleteRecipe(RecipeDTO recipe) throws IRecipeDAO.DALException;
-    void deleteRecipe(int recipeId) throws IRecipeDAO.DALException;
 
     class DALException extends Exception {
         public DALException(String msg, Throwable e) {
